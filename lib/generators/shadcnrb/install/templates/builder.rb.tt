@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+# Your application's local Builder subclass. Component installers append
+# `include Shadcnrb::<Name>` to this file. You own it — edit it however
+# you like.
+
+class Shadcnrb::Builder < Shadcnrb::BaseBuilder
+  # BEGIN generated component includes
+  # END generated component includes
+end

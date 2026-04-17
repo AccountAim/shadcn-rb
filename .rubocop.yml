@@ -1,0 +1,32 @@
+AllCops:
+  TargetRubyVersion: 3.2
+  NewCops: enable
+  Exclude:
+    - "tmp/**/*"
+    - "vendor/**/*"
+    - ".claude/**/*"
+
+Layout:
+  Enabled: false
+Style:
+  Enabled: false
+Naming:
+  Enabled: false
+Metrics:
+  Enabled: false
+Bundler:
+  Enabled: false
+Gemspec:
+  Enabled: false
+
+Layout/LineLength:
+  Enabled: true
+  Max: 100
+  Exclude:
+    - "lib/shadcnrb/*/style.rb"
+    - "lib/shadcnrb/styles/**/*"
+
+Style/HashSyntax:
+  Enabled: true
+  EnforcedStyle: ruby19
+  EnforcedShorthandSyntax: always

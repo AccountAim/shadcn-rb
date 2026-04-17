@@ -1,0 +1,106 @@
+# Each component lists which other components it depends on (pulls in
+# recursively). Stimulus controllers are co-located: the component
+# generator copies every file inside `lib/shadcnrb/<name>/` — so a sibling
+# `<name>_controller.js` (or `toast_trigger_controller.js` etc.) comes
+# along automatically. No `stimulus:` key needed.
+
+icon:
+  components: []
+
+avatar:
+  components: []
+
+card:
+  components: []
+
+input:
+  components: []
+
+label:
+  components: []
+
+separator:
+  components: []
+
+switch:
+  components: []
+
+badge:
+  components: []
+
+button:
+  components: []
+
+dialog:
+  components:
+    - button
+
+drawer:
+  components:
+    - button
+
+sidebar:
+  components:
+    - link
+
+toast:
+  components: []
+
+alert:
+  components:
+    - icon
+
+breadcrumb:
+  components:
+    - link
+
+button_group:
+  components: []
+
+dropdown_menu:
+  components:
+    - button
+    - link
+
+progress:
+  components: []
+
+tabs:
+  components: []
+
+typography:
+  components: []
+
+empty:
+  components:
+    - icon
+
+link:
+  components:
+    - button
+    - icon
+
+theme_switcher:
+  components:
+    - dropdown_menu
+
+# Opt-in: only needed if you pass `builder: Shadcnrb::FormBuilder` to
+# `form_with`. It's a class (not a module), so it's not mixed into the sui
+# Builder — `skip_wire` tells the generator to skip that step.
+form_builder:
+  components:
+    - input
+    - textarea
+    - checkbox
+    - radio_group
+    - select
+    - form_field
+    - button
+  skip_wire: true
+
+navigation_menu:
+  components:
+    - link
+
+collapsible:
+  components: []

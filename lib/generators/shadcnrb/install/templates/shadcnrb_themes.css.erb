@@ -1,0 +1,116 @@
+/* shadcnrb's owned CSS layer.
+ *
+ * This file holds everything shadcnrb needs at the CSS layer: the base
+ * palette tokens, the `.dark` overrides, the `@layer base` that paints the
+ * body, and the `.theme-<name>` preset classes. Keeping it in one file
+ * (imported once from `application.css`) means your app's CSS entry stays
+ * vanilla and shadcnrb can be swapped out by deleting one import.
+ *
+ * Theme presets: each `.theme-<name>` class overrides a small subset of
+ * tokens — typically just `--color-primary` and `--color-ring` — so the
+ * rest of the palette stays neutral and swapping themes doesn't touch
+ * backgrounds, borders, etc.
+ *
+ * Apply by setting the class on `<html>`:
+ *   <html class="theme-blue">            — blue in light mode
+ *   <html class="dark theme-blue">       — blue in dark mode
+ *
+ * `sui.theme_switcher` reads/writes localStorage + toggles the class.
+ * `sui.theme_switcher_init` in `<head>` prevents a flash of default colors
+ * on reload.
+ *
+ * To add your own brand theme:
+ *   .theme-brand      { --color-primary: …; --color-primary-foreground: …; --color-ring: …; }
+ *   .dark.theme-brand { --color-primary: …; --color-primary-foreground: …; --color-ring: …; }
+ * then pass `themes: [..., "brand"]` to `sui.theme_switcher`.
+ */
+
+@theme {
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0.014 285.82);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0.014 285.82);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0.014 285.82);
+  --color-primary: oklch(0.205 0.012 285.82);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.965 0.003 285.82);
+  --color-secondary-foreground: oklch(0.205 0.012 285.82);
+  --color-muted: oklch(0.965 0.003 285.82);
+  --color-muted-foreground: oklch(0.556 0.014 285.82);
+  --color-accent: oklch(0.965 0.003 285.82);
+  --color-accent-foreground: oklch(0.205 0.012 285.82);
+  --color-destructive: oklch(0.577 0.245 27.33);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.922 0.004 285.82);
+  --color-input: oklch(0.922 0.004 285.82);
+  --color-ring: oklch(0.708 0.028 285.82);
+  --color-sidebar: oklch(0.985 0 0);
+  --color-sidebar-foreground: oklch(0.395 0.013 285.82);
+  --color-sidebar-primary: oklch(0.205 0.012 285.82);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.965 0.003 285.82);
+  --color-sidebar-accent-foreground: oklch(0.205 0.012 285.82);
+  --color-sidebar-border: oklch(0.922 0.004 285.82);
+  --color-sidebar-ring: oklch(0.606 0.186 264.05);
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 0.125rem);
+  --radius-md: calc(var(--radius) - 0.0625rem);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.25rem);
+}
+
+.dark {
+  --color-background: oklch(0.145 0.005 285.82);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.17 0.006 285.82);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.17 0.006 285.82);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.985 0 0);
+  --color-primary-foreground: oklch(0.205 0.012 285.82);
+  --color-secondary: oklch(0.264 0.009 285.82);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.264 0.009 285.82);
+  --color-muted-foreground: oklch(0.65 0.01 285.82);
+  --color-accent: oklch(0.264 0.009 285.82);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.396 0.141 25.72);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.264 0.009 285.82);
+  --color-input: oklch(0.264 0.009 285.82);
+  --color-ring: oklch(0.439 0.018 285.82);
+  --color-sidebar: oklch(0.17 0.006 285.82);
+  --color-sidebar-foreground: oklch(0.65 0.01 285.82);
+  --color-sidebar-primary: oklch(0.985 0 0);
+  --color-sidebar-primary-foreground: oklch(0.205 0.012 285.82);
+  --color-sidebar-accent: oklch(0.264 0.009 285.82);
+  --color-sidebar-accent-foreground: oklch(0.985 0 0);
+  --color-sidebar-border: oklch(0.264 0.009 285.82);
+  --color-sidebar-ring: oklch(0.439 0.018 285.82);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+.theme-blue        { --color-primary: oklch(0.547 0.245 262.88); --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.547 0.245 262.88); }
+.dark.theme-blue   { --color-primary: oklch(0.72 0.165 254.62); --color-primary-foreground: oklch(0.145 0 0);     --color-ring: oklch(0.72 0.165 254.62); }
+
+.theme-green       { --color-primary: oklch(0.58 0.17 152.5);    --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.58 0.17 152.5); }
+.dark.theme-green  { --color-primary: oklch(0.77 0.16 152.5);    --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.77 0.16 152.5); }
+
+.theme-rose        { --color-primary: oklch(0.645 0.246 16.44);  --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.645 0.246 16.44); }
+.dark.theme-rose   { --color-primary: oklch(0.74 0.19 16.44);    --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.74 0.19 16.44); }
+
+.theme-violet      { --color-primary: oklch(0.541 0.281 293.01); --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.541 0.281 293.01); }
+.dark.theme-violet { --color-primary: oklch(0.72 0.21 293);      --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.72 0.21 293); }
+
+.theme-orange      { --color-primary: oklch(0.705 0.213 47.6);   --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.705 0.213 47.6); }
+.dark.theme-orange { --color-primary: oklch(0.78 0.18 47.6);     --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.78 0.18 47.6); }

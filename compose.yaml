@@ -1,0 +1,12 @@
+services:
+  gem:
+    build:
+      context: .
+      target: development
+    image: shadcn-rb:dev
+    container_name: shadcn-rb
+    volumes:
+      - .:/gem
+    working_dir: /gem
+    tty: true
+    stdin_open: true
