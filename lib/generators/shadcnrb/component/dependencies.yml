@@ -89,6 +89,7 @@ theme_switcher:
 # Builder — `skip_wire` tells the generator to skip that step.
 form_builder:
   components:
+    - label
     - input
     - textarea
     - checkbox
