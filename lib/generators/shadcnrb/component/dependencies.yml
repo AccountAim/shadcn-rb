@@ -105,3 +105,12 @@ navigation_menu:
 
 collapsible:
   components: []
+
+tooltip:
+  components:
+    - button
+
+hover_card:
+  components:
+    - button
+    - link
