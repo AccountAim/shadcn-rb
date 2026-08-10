@@ -60,26 +60,20 @@ module Shadcnrb
       end
     end
 
-    # Marks what the tooltip is attached to. A name renders the default
-    # button; a block takes your own markup verbatim, so every helper keeps
-    # its own signature:
+    # Marks which part of the block is the trigger — the rest is the panel.
+    # Your markup is used verbatim, so every helper keeps its own signature
+    # and the component pulls in no dependencies of its own:
     #
-    #   t.trigger "Save", variant: :ghost
+    #   t.trigger { sui.button "Save", variant: :ghost }
     #   t.trigger { sui.link_to "Docs", docs_path }
     #
     # Returns nothing — `tooltip` hoists the markup to the top of the root, so
     # this can sit anywhere in the block. Hover lives on the root, so a
     # disabled button still shows its panel (no `<span>` wrapper like upstream
-    # needs); the slot only marks which element gets `aria-describedby`, and
-    # the controller falls back to the root's first child without it.
-    def trigger(name = nil, variant: :outline, size: :default, scope: nil, **opts, &block)
-      @trigger_html =
-        if block && name.nil?
-          capture(&block)
-        else
-          opts[:data] = (opts[:data] || {}).merge(slot: "tooltip-trigger")
-          button(name, variant:, size:, **opts, &block)
-        end
+    # needs). `aria-describedby` lands on the hoisted markup's first element,
+    # or on whatever you tag `data-slot="tooltip-trigger"` yourself.
+    def trigger(scope: nil, &block)
+      @trigger_html = block ? capture(&block) : "".html_safe
       "".html_safe
     end
 

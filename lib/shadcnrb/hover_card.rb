@@ -60,30 +60,18 @@ module Shadcnrb
       end
     end
 
-    # Marks what the card is attached to. Mirrors the Rails primitive it
-    # wraps — a path renders `link_to` (the upstream trigger is an `<a>`), no
-    # path renders a `<button>`, and a block takes your own markup verbatim:
+    # Marks which part of the block is the trigger — the rest is the panel.
+    # Your markup is used verbatim, so every helper keeps its own signature
+    # and the component pulls in no dependencies of its own:
     #
-    #   h.trigger "@shadcn", user_path(user)
-    #   h.trigger "Plan: Pro"
+    #   h.trigger { sui.link_to "@shadcn", user_path(user) }
     #   h.trigger { sui.badge "Pro", variant: :secondary }
     #
     # Returns nothing — `hover_card` hoists the markup to the top of the root,
     # so this can sit anywhere in the block. Hover lives on the root, so the
     # trigger element itself is left untouched.
-    def trigger(name = nil, options = nil, variant: :link, size: :default,
-      scope: nil, **opts, &block)
-      @trigger_html =
-        if block && name.nil?
-          capture(&block)
-        else
-          opts[:data] = (opts[:data] || {}).merge(slot: "hover-card-trigger")
-          if options
-            link_to(name, options, variant:, size:, **opts, &block)
-          else
-            button(name, variant:, size:, **opts, &block)
-          end
-        end
+    def trigger(scope: nil, &block)
+      @trigger_html = block ? capture(&block) : "".html_safe
       "".html_safe
     end
 

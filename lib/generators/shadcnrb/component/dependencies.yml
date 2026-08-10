@@ -106,11 +106,10 @@ navigation_menu:
 collapsible:
   components: []
 
+# Both overlays render the trigger from a caller-supplied block, so they
+# depend on nothing.
 tooltip:
-  components:
-    - button
+  components: []
 
 hover_card:
-  components:
-    - button
-    - link
+  components: []
