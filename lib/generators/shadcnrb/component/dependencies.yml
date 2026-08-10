@@ -106,10 +106,18 @@ navigation_menu:
 collapsible:
   components: []
 
-# Both overlays render the trigger from a caller-supplied block, so they
-# depend on nothing.
-tooltip:
+# Shared trigger-slot plumbing + positioning controller for anchored
+# overlays. Not a renderable component — nothing to mix into the Builder.
+anchored:
   components: []
+  skip_wire: true
+
+# Both overlays render the trigger from a caller-supplied block, so beyond
+# the shared anchored plumbing they depend on nothing.
+tooltip:
+  components:
+    - anchored
 
 hover_card:
-  components: []
+  components:
+    - anchored

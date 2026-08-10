@@ -35,11 +35,14 @@ module Shadcnrb
 
       # Files from prior architectures that the current gem no longer ships.
       # `install --force` overwrites the live files but doesn't prune
-      # stragglers — Zeitwerk would still try to autoload them and crash.
-      # Prune them up front so the install lands clean.
+      # stragglers — stale .rb files crash Zeitwerk autoload, stale
+      # controllers register dead Stimulus identifiers. Prune them up front
+      # so the install lands clean.
       STALE_FILES = %w[
         app/components/shadcnrb/component_base.rb
         app/components/shadcnrb/component_proxy.rb
+        app/components/shadcnrb/tooltip/component_controller.js
+        app/components/shadcnrb/hover_card/component_controller.js
       ].freeze
       STALE_PER_COMPONENT = %w[proxy.rb].freeze
 

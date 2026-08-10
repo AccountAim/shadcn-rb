@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators"
-require_relative "../component/component_generator"
+require "generators/shadcnrb/component/component_generator"
 
 module Shadcnrb
   module Generators

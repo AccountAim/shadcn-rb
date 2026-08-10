@@ -2,6 +2,7 @@
 
 require "rails/generators"
 require "yaml"
+require "generators/shadcnrb/install/install_generator"
 
 module Shadcnrb
   module Generators
@@ -22,6 +23,22 @@ module Shadcnrb
           say "Unknown component: #{component_name}", :red
           say "Available: #{available_components.join(', ')}", :yellow
           exit 1
+        end
+      end
+
+      # `--force` overwrites live files but doesn't prune stragglers. Drop
+      # this component's entries from the install generator's stale lists so
+      # a single-component upgrade lands clean without a full reinstall.
+      def remove_stale_files
+        prefix = "app/components/shadcnrb/#{component_name}/"
+        stale = InstallGenerator::STALE_FILES.select { |rel| rel.start_with?(prefix) }
+        stale += InstallGenerator::STALE_PER_COMPONENT.map { |f| "#{prefix}#{f}" }
+
+        stale.each do |rel|
+          path = Rails.root.join(rel)
+          next unless File.exist?(path)
+          say_status :remove, "#{rel} (obsolete in current shadcnrb)"
+          File.delete(path)
         end
       end
 
