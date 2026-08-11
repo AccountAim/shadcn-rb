@@ -59,6 +59,7 @@ button_group:
 
 dropdown_menu:
   components:
+    - anchored
     - button
     - link
 
@@ -101,6 +102,7 @@ form_builder:
 
 navigation_menu:
   components:
+    - anchored
     - link
 
 collapsible:

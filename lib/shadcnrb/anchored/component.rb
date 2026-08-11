@@ -71,7 +71,10 @@ module Shadcnrb
       # shown, so no ancestor `overflow` or stacking context can clip it. The
       # controller computes fixed coordinates from `data-side` / `data-align`
       # (and may rewrite `data-side` when it flips near a viewport edge).
-      def anchored_panel(opts, slot:, side:, align:)
+      # `controller:` targets a subclassed engine (dropdown_menu,
+      # navigation_menu) instead of the shared one.
+      def anchored_panel(opts, slot:, side:, align:,
+        controller: "shadcnrb--anchored--component")
         raise ArgumentError, "Unknown side #{side.inspect}. Valid: #{SIDES.inspect}" unless
           SIDES.include?(side.to_sym)
         raise ArgumentError, "Unknown align #{align.inspect}. Valid: #{ALIGNS.inspect}" unless
@@ -83,7 +86,7 @@ module Shadcnrb
           side: side.to_s,
           align: align.to_s,
           state: "closed",
-          "shadcnrb--anchored--component-target": "content"
+          "#{controller}-target": "content"
         )
         opts
       end

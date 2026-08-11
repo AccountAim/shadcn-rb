@@ -279,10 +279,9 @@ module Shadcnrb
         html_opts[:type] ||= "button"
         button_tag(**html_opts) { content_with_icon(name, icon:, &block) }
       elsif dropdown_trigger
-        html_opts[:data] = html_opts[:data].merge(
-          slot: "dropdown-menu-trigger",
-          action: merge_action(html_opts[:data], "click->shadcnrb--dropdown-menu--component#toggle")
-        )
+        # The surrounding dropdown root owns the click; the slot marker scopes
+        # which element toggles it.
+        html_opts[:data] = html_opts[:data].merge(slot: "dropdown-menu-trigger")
         html_opts[:type] ||= "button"
         button_tag(**html_opts) { content_with_icon(name, icon:, &block) }
       elsif block

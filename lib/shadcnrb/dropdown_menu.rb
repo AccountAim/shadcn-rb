@@ -6,6 +6,10 @@
 # scope (hover-open, cascading close) that inherits most methods from the
 # top-level via `method_prefix: "sub_"`. upstream: dropdown-menu.tsx.
 #
+# shadcn divergence: no floating-ui. Panels are `popover="manual"` elements
+# shown in the top layer and positioned by the shared anchored engine, which
+# the controller subclasses. See anchored/component_controller.js.
+#
 # shadcn divergence: child parts (`trigger`, `content`, `item`, `group`, `label`,
 # `separator`, `shortcut`, `sub`) are orphan-protected — they only render when
 # called through a `:dropdown_menu` (or `:dropdown_menu_sub`) `Shadcnrb::Scope`
@@ -16,34 +20,43 @@
 
 module Shadcnrb
   class DropdownMenu < Component
-    def dropdown_menu(**opts, &block)
+    include Shadcnrb::Anchored::Component
+
+    # The block is the menu; `m.trigger` names what opens it — same shape as
+    # `sui.tooltip` / `sui.hover_card`. Click lives on the root (clicks
+    # inside the panel are filtered out by the controller), so the trigger
+    # markup is used verbatim.
+    #
+    #   sui.dropdown_menu do |m|
+    #     m.trigger { sui.button "Open", variant: :outline }
+    #     m.item "Profile", profile_path
+    #     m.separator
+    #     m.item "Sign out", logout_path, method: :delete
+    #   end
+    #
+    # `**opts` land on the root; `content:` is the panel's own option hash
+    # (same idea as `button_to`'s `form:`).
+    def dropdown_menu(side: :bottom, align: :start, content: {}, **opts, &block)
       opts[:data] = (opts[:data] || {}).merge(
         slot: "dropdown-menu",
-        controller: [ "shadcnrb--dropdown-menu--component", opts.dig(:data, :controller) ].compact.join(" ")
+        controller: [ "shadcnrb--dropdown-menu--component", opts.dig(:data, :controller) ].compact.join(" "),
+        action: merge_action(opts[:data],
+          "click->shadcnrb--dropdown-menu--component#toggle",
+          "keydown.esc@window->shadcnrb--dropdown-menu--component#dismiss")
       )
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.root, opts[:class])
       scope = Scope.new(@builder, kind: :dropdown_menu, component: self)
       content_tag(:div, **opts) do
-        block ? capture(scope, &block) : "".html_safe
+        trigger_html, body = capture_parts(scope, &block)
+        safe_join([ trigger_html, panel(body, side:, align:, **content) ])
       end
     end
 
-    def trigger(name = nil, variant: :default, size: :default, scope: nil, **opts, &block)
-      opts[:data] = (opts[:data] || {}).merge(
-        slot: "dropdown-menu-trigger",
-        action: "click->shadcnrb--dropdown-menu--component#toggle"
-      )
-      button(name, variant:, size:, **opts, &block)
-    end
-
-    def content(scope: nil, **opts, &block)
-      opts[:data] = (opts[:data] || {}).merge(
-        slot: "dropdown-menu-content",
-        "shadcnrb--dropdown-menu--component-target": "content",
-        state: "closed"
-      )
+    def panel(body, side:, align:, **opts)
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.content, opts[:class])
-      content_tag(:div, **opts) { scope.capture_block(&block) }
+      opts = anchored_panel(opts, slot: "dropdown-menu-content", side:, align:,
+        controller: "shadcnrb--dropdown-menu--component")
+      content_tag(:div, body, **opts)
     end
 
     def group(scope: nil, **opts, &block)
@@ -128,40 +141,43 @@ module Shadcnrb
       end
     end
 
-    # Cascading sub-menu. Each sub spawns its own nested Stimulus controller
-    # so hover / close timers are scoped to that level — nesting Just Works.
+    # Cascading sub-menu, same slot shape as the root: the block is the sub
+    # panel, `sub.trigger` is the row that opens it. Each sub spawns its own
+    # nested Stimulus controller so hover / close timers are scoped to that
+    # level — nesting Just Works.
     #
     #   m.item "New file"
     #   m.sub do |sub|
     #     sub.trigger "Share"
-    #     sub.content do
-    #       m.item "Email",  "#"
-    #       m.item "Slack",  "#"
-    #     end
+    #     m.item "Email",  "#"
+    #     m.item "Slack",  "#"
     #   end
-    def sub(scope: nil, &block)
+    def sub(side: :right, align: :start, content: {}, scope: nil, &block)
       sub_scope = Scope.new(@builder, kind: :dropdown_menu_sub, component: self,
         method_prefix: "sub_", parent: scope)
-      content_tag(:div,
-        class: "relative",
-        data: {
-          slot: "dropdown-menu-sub",
-          controller: "shadcnrb--dropdown-menu--component"
-        }) do
-        block ? capture(sub_scope, &block) : "".html_safe
+      data = {
+        slot: "dropdown-menu-sub",
+        controller: "shadcnrb--dropdown-menu--component",
+        # Grace period for the pointer crossing the gap into the sub panel.
+        "shadcnrb--dropdown-menu--component-close-delay-value": 150
+      }
+      content_tag(:div, data: data) do
+        trigger_html, body = capture_parts(sub_scope, &block)
+        safe_join([ trigger_html, sub_panel(body, side:, align:, **content) ])
       end
     end
 
-    # Right-anchored sub-menu trigger (different styling + hover wiring than
-    # the top-level `trigger`).
+    # The row that opens a sub — a styled menu item with a chevron, rendered
+    # by the menu itself (unlike the root `trigger` slot, which takes your
+    # markup). Stashed like a slot, so it can sit anywhere in the sub block.
     def sub_trigger(name = nil, icon: nil, scope: nil, **opts, &block)
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.sub_trigger, opts[:class])
       opts[:data] = (opts[:data] || {}).merge(
         slot: "dropdown-menu-sub-trigger",
         action: merge_action(opts[:data],
-          "mouseenter->shadcnrb--dropdown-menu--component#openOnHover",
-          "focus->shadcnrb--dropdown-menu--component#openOnHover",
-          "mouseleave->shadcnrb--dropdown-menu--component#scheduleClose",
+          "mouseenter->shadcnrb--dropdown-menu--component#open",
+          "focus->shadcnrb--dropdown-menu--component#open",
+          "mouseleave->shadcnrb--dropdown-menu--component#close",
           "click->shadcnrb--dropdown-menu--component#toggle"),
         state: "closed"
       )
@@ -169,27 +185,26 @@ module Shadcnrb
       opts[:role] ||= "menuitem"
       opts[:"aria-haspopup"] ||= "menu"
       opts[:"aria-expanded"] ||= "false"
-      button_tag(**opts) do
+      @trigger_html = button_tag(**opts) do
         label = content_with_icon(name, icon:, &block)
         safe_join([ label, self.icon(:"chevron-right", class: "ml-auto size-4 opacity-60") ])
       end
+      "".html_safe
     end
 
-    # Right-anchored sub-menu content panel.
-    def sub_content(scope: nil, **opts, &block)
+    def sub_panel(body, side:, align:, **opts)
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.sub_content, opts[:class])
       opts[:data] = (opts[:data] || {}).merge(
-        slot: "dropdown-menu-sub-content",
-        "shadcnrb--dropdown-menu--component-target": "content",
         action: merge_action(opts[:data],
           "mouseenter->shadcnrb--dropdown-menu--component#cancelClose",
-          "mouseleave->shadcnrb--dropdown-menu--component#scheduleClose"),
-        state: "closed"
+          "mouseleave->shadcnrb--dropdown-menu--component#close")
       )
-      content_tag(:div, **opts) { scope.capture_block(&block) }
+      opts = anchored_panel(opts, slot: "dropdown-menu-sub-content", side:, align:,
+        controller: "shadcnrb--dropdown-menu--component")
+      content_tag(:div, body, **opts)
     end
 
-    private :trigger, :content, :sub, :group, :label, :separator, :shortcut,
-            :item, :sub_trigger, :sub_content
+    private :sub, :group, :label, :separator, :shortcut,
+            :item, :sub_trigger, :panel, :sub_panel
   end
 end
