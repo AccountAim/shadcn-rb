@@ -8,40 +8,12 @@ module Shadcnrb
     # The including `Shadcnrb::Component` subclass supplies the `root` /
     # `content` styles and the public wrapper method.
     module Component
+      include Shadcnrb::Anchored::TriggerSlot
+
       SIDES  = %i[top bottom left right].freeze
       ALIGNS = %i[start center end].freeze
 
-      # Marks which part of the block is the trigger — the rest is the panel.
-      # Your markup is used verbatim, so every helper keeps its own signature
-      # and the component pulls in no dependencies of its own:
-      #
-      #   t.trigger { sui.button "Save", variant: :ghost }
-      #   h.trigger { sui.link_to "@shadcn", user_path(user) }
-      #
-      # Returns nothing — the wrapper hoists the markup to the top of the
-      # root, so this can sit anywhere in the block. Hover lives on the root,
-      # so the trigger element itself is left untouched.
-      def trigger(scope: nil, &block)
-        @trigger_html = block ? capture(&block) : "".html_safe
-        "".html_safe
-      end
-
-      private :trigger
-
       private
-
-      # Splits one pass over the block into (trigger slot, panel body). The
-      # ivar is saved and restored so an overlay rendered inside another
-      # overlay's panel doesn't steal the outer trigger.
-      def capture_parts(scope, &block)
-        return [ "".html_safe, "".html_safe ] unless block
-
-        outer, @trigger_html = @trigger_html, nil
-        body = capture(scope, &block)
-        slot = @trigger_html || "".html_safe
-        @trigger_html = outer
-        [ slot, body ]
-      end
 
       # Root options: hover/focus/Esc handlers and delay values for the
       # shared controller. `describe:` asks it to mint `aria-describedby`

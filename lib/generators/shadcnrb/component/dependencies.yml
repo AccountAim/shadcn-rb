@@ -31,12 +31,16 @@ badge:
 button:
   components: []
 
+# Modal overlays: `anchored` supplies the trigger-slot mechanics (not
+# positioning — the panels are centered/edge-anchored by CSS).
 dialog:
   components:
+    - anchored
     - button
 
 drawer:
   components:
+    - anchored
     - button
 
 sidebar:

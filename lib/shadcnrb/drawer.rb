@@ -5,36 +5,56 @@
 # vaul is a heavyweight React-only lib. Stimulus `shadcnrb--drawer--component` controller
 # replaces Radix Dialog. upstream: sheet.tsx.
 #
-# shadcn divergence: child parts (`trigger`, `content`, `header`, `title`,
-# `description`, `footer`) are orphan-protected — they only render when called
-# through a `:drawer`-kind `Shadcnrb::Scope` (yielded by `sui.drawer do |drawer| ... end`).
+# shadcn divergence: child parts (`header`, `title`, `description`, `footer`)
+# are orphan-protected — they only render when called through a `:drawer`-kind
+# `Shadcnrb::Scope` (yielded by `sui.drawer do |drawer| ... end`).
 
 module Shadcnrb
   class Drawer < Component
-    def drawer(**opts, &block)
-      opts[:data] = (opts[:data] || {}).merge(slot: "drawer", controller: "shadcnrb--drawer--component")
+    include Shadcnrb::Anchored::TriggerSlot
+
+    # The block is the drawer panel; `d.trigger` names what opens it — the
+    # same slot shape as dialog. Click lives on the root (clicks inside the
+    # panel or backdrop are filtered out by the controller), so the trigger
+    # markup is used verbatim.
+    #
+    #   sui.drawer side: :left do |d|
+    #     d.trigger { sui.button "Settings", variant: :outline }
+    #     d.header do
+    #       d.title "Settings"
+    #     end
+    #     ...
+    #   end
+    #
+    # `**opts` land on the root; `content:` is the panel's own option hash.
+    def drawer(side: :right, content: {}, **opts, &block)
+      opts[:data] = (opts[:data] || {}).merge(
+        slot: "drawer",
+        controller: [ "shadcnrb--drawer--component",
+                      opts.dig(:data, :controller) ].compact.join(" "),
+        action: merge_action(opts[:data],
+          "click->shadcnrb--drawer--component#open",
+          "keydown.esc@window->shadcnrb--drawer--component#close")
+      )
       scope = Scope.new(@builder, kind: :drawer, component: self)
       content_tag(:div, **opts) do
-        block ? capture(scope, &block) : "".html_safe
+        trigger_html, body = capture_parts(scope, &block)
+        safe_join([ trigger_html, backdrop, panel(body, side:, **content) ])
       end
     end
 
-    def trigger(name = nil, variant: :default, size: :default, scope: nil, **opts, &block)
-      opts[:data] = (opts[:data] || {}).merge(
-        slot: "drawer-trigger",
-        action: "click->shadcnrb--drawer--component#open"
-      )
-      button(name, variant:, size:, **opts, &block)
-    end
+    private
 
-    def content(side: :right, scope: nil, **opts, &block)
-      style = self.class.style
-      backdrop = tag.div("",
+    def backdrop
+      tag.div("",
         data: { slot: "drawer-overlay", "shadcnrb--drawer--component-target": "backdrop",
                 action: "click->shadcnrb--drawer--component#close" },
-        class: style.backdrop
+        class: self.class.style.backdrop
       )
+    end
 
+    def panel(body, side:, **opts)
+      style = self.class.style
       opts[:data] = (opts[:data] || {}).merge(slot: "drawer-content",
         "shadcnrb--drawer--component-target": "content")
       opts[:class] = Shadcnrb::TailwindMerge.call(
@@ -43,8 +63,7 @@ module Shadcnrb
         opts[:class]
       )
 
-      panel = content_tag(:div, **opts) do
-        body = scope.capture_block(&block)
+      content_tag(:div, **opts) do
         close_btn = button(
           variant: :ghost,
           size: :"icon-sm",
@@ -54,8 +73,6 @@ module Shadcnrb
         ) { icon(:x) }
         safe_join([ body, close_btn ])
       end
-
-      safe_join([ backdrop, panel ])
     end
 
     def header(scope: nil, **opts, &block)
@@ -86,6 +103,6 @@ module Shadcnrb
       end
     end
 
-    private :trigger, :content, :header, :footer, :title, :description
+    private :header, :footer, :title, :description
   end
 end

@@ -36,14 +36,20 @@ module Shadcnrb
       Scope.new(@builder, kind: :collapsible, component: self)
     end
 
-    def trigger(name = nil, scope: nil, **opts, &block)
-      opts[:data] = (opts[:data] || {}).merge(
-        slot: "collapsible-trigger",
-        action: merge_action(opts[:data], "click->shadcnrb--collapsible--component#toggle")
-      )
-      opts[:type] ||= "button"
-      button_tag(**opts) do
-        block ? capture(&block) : name.to_s
+    # Layout-neutral wrapper (`display: contents`) that makes your markup the
+    # toggle — rendered in place, since a disclosure trigger usually sits
+    # inside surrounding chrome:
+    #
+    #   c.trigger { sui.button variant: :ghost, size: :"icon-sm" { c.chevron } }
+    #
+    # Or skip it and stamp the toggle onto an existing element directly, like
+    # `s.menu_button collapsible: true` does.
+    def trigger(scope: nil, &block)
+      content_tag(:span,
+        class: "contents",
+        data: { slot: "collapsible-trigger",
+                action: "click->shadcnrb--collapsible--component#toggle" }) do
+        scope ? scope.capture_block(&block) : capture(&block)
       end
     end
 
