@@ -5,9 +5,10 @@
 # `Shadcnrb::Scope` (yielded by `sui.navigation_menu do |nav| ... end`, or via
 # `sui.navigation_menu_proxy`).
 #
-# shadcn divergence: no floating-ui. Panels are `popover="manual"` elements
-# shown in the top layer and positioned by the shared anchored engine, which
-# the controller subclasses. See anchored/component_controller.js.
+# shadcn divergence: no portal. Panels are `popover="manual"` elements shown
+# in the top layer and positioned by @floating-ui/dom through the shared
+# anchored engine, which the controller subclasses. See
+# anchored/component_controller.js.
 
 module Shadcnrb
   # A simple horizontal navigation menu — the structural pieces of shadcn's

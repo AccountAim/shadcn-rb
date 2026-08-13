@@ -114,9 +114,13 @@ collapsible:
 
 # Shared trigger-slot plumbing + positioning controller for anchored
 # overlays. Not a renderable component — nothing to mix into the Builder.
+# Placement math comes from @floating-ui/dom, vendored into the host app
+# via `bin/importmap pin` (resolves its transitive pins too).
 anchored:
   components: []
   skip_wire: true
+  pins:
+    - "@floating-ui/dom@1.6.12"
 
 # Both overlays render the trigger from a caller-supplied block, so beyond
 # the shared anchored plumbing they depend on nothing.

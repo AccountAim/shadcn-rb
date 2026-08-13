@@ -5,10 +5,10 @@
 # `delay:` / `close_delay:` live on each root and default to shadcn's
 # provider values (0/0). upstream: tooltip.tsx.
 #
-# shadcn divergence: no floating-ui. The panel is a `popover="manual"`
-# element shown in the top layer and positioned by the shared controller —
-# it offsets, flips, and shifts like upstream, minus the finer middleware
-# (arrow padding, size constraints). See anchored/component_controller.js.
+# shadcn divergence: no portal. The panel is a `popover="manual"` element
+# shown in the top layer and positioned by @floating-ui/dom (offset, flip,
+# shift, arrow) through the shared controller. See
+# anchored/component_controller.js.
 #
 # shadcn divergence: no `TooltipContent` part — the block body *is* the
 # panel, and `trigger` is the only slot. `trigger` is orphan-protected: it

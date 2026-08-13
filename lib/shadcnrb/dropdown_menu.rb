@@ -6,9 +6,10 @@
 # scope (hover-open, cascading close) that inherits most methods from the
 # top-level via `method_prefix: "sub_"`. upstream: dropdown-menu.tsx.
 #
-# shadcn divergence: no floating-ui. Panels are `popover="manual"` elements
-# shown in the top layer and positioned by the shared anchored engine, which
-# the controller subclasses. See anchored/component_controller.js.
+# shadcn divergence: no portal. Panels are `popover="manual"` elements shown
+# in the top layer and positioned by @floating-ui/dom through the shared
+# anchored engine, which the controller subclasses. See
+# anchored/component_controller.js.
 #
 # shadcn divergence: child parts (`trigger`, `content`, `item`, `group`, `label`,
 # `separator`, `shortcut`, `sub`) are orphan-protected — they only render when

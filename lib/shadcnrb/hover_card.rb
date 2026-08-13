@@ -5,10 +5,9 @@
 # live on the root rather than the trigger, keeping the timing in one place;
 # the defaults (600ms / 300ms) match upstream. upstream: hover-card.tsx.
 #
-# shadcn divergence: no floating-ui. The panel is a `popover="manual"`
-# element shown in the top layer and positioned by the shared controller —
-# it offsets, flips, and shifts like upstream, minus the finer middleware.
-# See anchored/component_controller.js.
+# shadcn divergence: no portal. The panel is a `popover="manual"` element
+# shown in the top layer and positioned by @floating-ui/dom through the
+# shared controller. See anchored/component_controller.js.
 #
 # shadcn divergence: no `HoverCardContent` part — the block body *is* the
 # panel, and `trigger` is the only slot. `trigger` is orphan-protected: it

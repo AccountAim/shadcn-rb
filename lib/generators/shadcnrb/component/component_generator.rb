@@ -64,6 +64,28 @@ module Shadcnrb
         end
       end
 
+      def pin_npm_packages
+        return if component_pins.empty?
+
+        importmap_path = Rails.root.join("config/importmap.rb")
+        unless File.exist?(importmap_path)
+          say_status :skip, "config/importmap.rb not found — pin #{component_pins.join(', ')} manually"
+          return
+        end
+
+        content = File.read(importmap_path)
+        component_pins.each do |package|
+          name = package.rpartition("@").first
+          if content.include?(%("#{name}"))
+            say_status :identical, "config/importmap.rb (#{name} already pinned)"
+            next
+          end
+
+          say_status :pin, "#{package} (vendored into vendor/javascript)"
+          run "bin/importmap pin #{package}"
+        end
+      end
+
       def install_component_dependencies
         component_deps.each do |dep|
           say_status :depend, "#{dep} (required by #{component_name})"
@@ -118,6 +140,10 @@ module Shadcnrb
 
       def component_deps
         dependencies.dig(component_name, "components") || []
+      end
+
+      def component_pins
+        dependencies.dig(component_name, "pins") || []
       end
 
       # Components that are classes (e.g. FormBuilder < ActionView::Helpers::
