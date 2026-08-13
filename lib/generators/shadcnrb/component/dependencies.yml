@@ -22,6 +22,9 @@ label:
 separator:
   components: []
 
+skeleton:
+  components: []
+
 switch:
   components: []
 
