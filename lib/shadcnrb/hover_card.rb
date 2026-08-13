@@ -35,21 +35,35 @@ module Shadcnrb
     # hover / closes after the pointer leaves. `**opts` land on the root;
     # `content:` is the panel's own option hash (same idea as `button_to`'s
     # `form:`).
+    #
+    # Pass `src:` to lazy-load the panel via a Turbo Frame on first open —
+    # the block body becomes the loading state (a default "Loading..."
+    # placeholder when blank). Content is fetched once and cached for
+    # subsequent opens. The endpoint wraps its response in a
+    # `<turbo-frame id: request.headers["Turbo-Frame"]>` tag.
     def hover_card(side: :bottom, align: :center,
-      delay: 600, close_delay: 300, content: {}, **opts, &block)
+      delay: 600, close_delay: 300, src: nil, content: {}, **opts, &block)
       opts = anchored_root(opts, slot: "hover-card", delay:, close_delay:)
       scope = Scope.new(@builder, kind: :hover_card, component: self)
       content_tag(:div, **opts) do
         trigger_html, body = capture_parts(scope, &block)
-        safe_join([ trigger_html, panel(body, side:, align:, **content) ])
+        safe_join([ trigger_html, panel(body, side:, align:, src:, **content) ])
       end
     end
 
     private
 
-    def panel(body, side:, align:, **opts)
+    def panel(body, side:, align:, src:, **opts)
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.content, opts[:class])
       opts = anchored_panel(opts, slot: "hover-card-content", side:, align:)
+
+      if src
+        loading = body.presence || content_tag(:p, "Loading...",
+          class: "text-sm text-muted-foreground animate-pulse")
+        body = content_tag(:"turbo-frame", loading,
+          id: "hover-card-frame-#{SecureRandom.hex(4)}", "data-lazy-src": src)
+      end
+
       content_tag(:div, body, **opts)
     end
   end
