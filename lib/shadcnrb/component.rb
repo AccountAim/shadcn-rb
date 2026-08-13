@@ -79,10 +79,14 @@ module Shadcnrb
     #   sui.button "Edit", dialog: { src: profile_path }   # wraps the button
     #   sui.button "Edit", dialog: "profile-dialog"        # references by id
     #
-    # A Hash wraps the rendered element in that overlay as its trigger. A
-    # String stamps `data-<overlay>="<id>"` on the element; the overlay's
+    # A Hash wraps the rendered element in that overlay as its trigger; the
+    # hash is the overlay's own options (`src:`, `loading:`, `side:`, ...).
+    # A String stamps `data-<overlay>="<id>"` on the element; the overlay's
     # controller listens document-wide, so the trigger can live anywhere.
-    OVERLAY_KWARGS = %i[dialog].freeze
+    # Anchored overlays position against their trigger, so the String form
+    # is modal-only.
+    OVERLAY_KWARGS = %i[dialog drawer hover_card dropdown_menu].freeze
+    REFERABLE_OVERLAYS = %i[dialog drawer].freeze
 
     # Pops the overlay kwarg from `opts` before rendering. Returns the
     # [key, config] pair for `wrap_overlay` (Hash form), or nil after
@@ -93,6 +97,11 @@ module Shadcnrb
 
       value = opts.delete(key)
       return [ key, value ] if value.is_a?(Hash)
+
+      unless REFERABLE_OVERLAYS.include?(key)
+        raise ArgumentError, "#{key}: takes a Hash of #{key} options — " \
+          "reference by id only works for #{REFERABLE_OVERLAYS.join(' and ')}"
+      end
 
       opts[:data] = (opts[:data] || {}).merge(key => value)
       nil
@@ -107,6 +116,29 @@ module Shadcnrb
           "#{key}: needs the #{key} component — bin/rails g shadcnrb:component #{key}"
       end
       @builder.public_send(key, **config) { |o| o.trigger { html } }
+    end
+
+    # `src:` panels: wraps the loading state (block body, else `loading:`,
+    # else a default pulse) in a Turbo Frame the controller fetches on first
+    # open. The endpoint responds with a `<turbo-frame>` matching the
+    # request's `Turbo-Frame` header. With `reload:` the loading state is
+    # stashed so it can be restored when the frame resets on close.
+    #
+    # The frame id is a digest of `src`, so every frame for a given URL
+    # sends the same id and the echoed response is safe to cache publicly
+    # (browser or CDN). Frames sharing a `src` share the id. `reload:`
+    # re-issues the request on every open through normal HTTP caching —
+    # the endpoint's cache headers decide how fresh it is.
+    def lazy_frame(body, src:, reload:, loading:, slot:)
+      loading = body.presence || loading || content_tag(:p, "Loading...",
+        class: "text-sm text-muted-foreground animate-pulse")
+      frame_opts = { id: "#{slot}-frame-#{Digest::MD5.hexdigest(src.to_s).first(8)}",
+                     "data-lazy-src": src }
+      if reload
+        frame_opts["data-lazy-reload"] = ""
+        frame_opts["data-loading-html"] = loading.to_s
+      end
+      content_tag(:"turbo-frame", loading, **frame_opts)
     end
 
     # `current_page?` raises when passed `"#"` or a malformed hash. Wrap so

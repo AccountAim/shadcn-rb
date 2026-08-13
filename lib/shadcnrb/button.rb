@@ -40,19 +40,21 @@ module Shadcnrb
 
     def button_to(name = nil, options = nil, variant: nil, size: :default, icon: nil,
       scope: nil, **html_opts, &block)
+      overlay = extract_overlay!(html_opts)
       variant = resolve_variant(variant, scope)
       unless variant == BARE_VARIANT
         html_opts[:class] = classes(variant, size, html_opts[:class])
         html_opts[:data] =
           { slot: "button", variant: variant.to_s, size: size.to_s }.merge(html_opts[:data] || {})
       end
-      if block || icon
+      html = if block || icon
         @builder.view_context.button_to(options || name, html_opts) do
           content_with_icon(name, icon:, &block)
         end
       else
         @builder.view_context.button_to(name, options, html_opts)
       end
+      wrap_overlay(overlay, html)
     end
 
     private

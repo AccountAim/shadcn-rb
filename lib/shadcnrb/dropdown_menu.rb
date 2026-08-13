@@ -37,7 +37,12 @@ module Shadcnrb
     #
     # `**opts` land on the root; `content:` is the panel's own option hash
     # (same idea as `button_to`'s `form:`).
-    def dropdown_menu(side: :bottom, align: :start, content: {}, **opts, &block)
+    #
+    # `src:` / `reload:` / `loading:` lazy-load the menu via a Turbo Frame,
+    # same contract as `sui.dialog` — the lazy partial reaches `m.item` etc.
+    # through `sui.dropdown_menu_proxy`.
+    def dropdown_menu(side: :bottom, align: :start,
+      src: nil, reload: false, loading: nil, content: {}, **opts, &block)
       opts[:data] = (opts[:data] || {}).merge(
         slot: "dropdown-menu",
         controller: [ "shadcnrb--dropdown-menu--component", opts.dig(:data, :controller) ].compact.join(" "),
@@ -49,8 +54,15 @@ module Shadcnrb
       scope = Scope.new(@builder, kind: :dropdown_menu, component: self)
       content_tag(:div, **opts) do
         trigger_html, body = capture_parts(scope, &block)
+        body = lazy_frame(body, src:, reload:, loading:, slot: "dropdown-menu") if src
         safe_join([ trigger_html, panel(body, side:, align:, **content) ])
       end
+    end
+
+    # Bare scope for lazy-loaded partials rendered outside a
+    # `sui.dropdown_menu` block (turbo-frame content).
+    def proxy
+      Scope.new(@builder, kind: :dropdown_menu, component: self)
     end
 
     def panel(body, side:, align:, **opts)

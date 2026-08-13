@@ -27,19 +27,24 @@ module Shadcnrb
     #   end
     #
     # `**opts` land on the root; `content:` is the panel's own option hash.
-    def drawer(side: :right, content: {}, **opts, &block)
+    # `open: true` starts open (server-driven drawers omit the trigger);
+    # `src:` / `reload:` / `loading:` lazy-load the panel via a Turbo Frame
+    # — same contract as `sui.dialog`.
+    def drawer(side: :right, open: false, src: nil, reload: false, loading: nil,
+      content: {}, **opts, &block)
       opts[:data] = (opts[:data] || {}).merge(
         slot: "drawer",
         controller: [ "shadcnrb--drawer--component",
                       opts.dig(:data, :controller) ].compact.join(" "),
         action: merge_action(opts[:data],
           "click->shadcnrb--drawer--component#open",
-          "keydown.esc@window->shadcnrb--drawer--component#close")
+          "keydown.esc@window->shadcnrb--drawer--component#close"),
+        "shadcnrb--drawer--component-open-value": open
       )
       scope = Scope.new(@builder, kind: :drawer, component: self)
       content_tag(:div, **opts) do
         trigger_html, body = capture_parts(scope, &block)
-        safe_join([ trigger_html, backdrop, panel(body, side:, **content) ])
+        safe_join([ trigger_html, backdrop, panel(body, side:, src:, reload:, loading:, **content) ])
       end
     end
 
@@ -53,7 +58,7 @@ module Shadcnrb
       )
     end
 
-    def panel(body, side:, **opts)
+    def panel(body, side:, src:, reload:, loading:, **opts)
       style = self.class.style
       opts[:data] = (opts[:data] || {}).merge(slot: "drawer-content",
         "shadcnrb--drawer--component-target": "content")
@@ -64,6 +69,7 @@ module Shadcnrb
       )
 
       content_tag(:div, **opts) do
+        body = lazy_frame(body, src:, reload:, loading:, slot: "drawer") if src
         close_btn = button(
           variant: :ghost,
           size: :"icon-sm",

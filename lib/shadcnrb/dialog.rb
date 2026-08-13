@@ -31,10 +31,11 @@ module Shadcnrb
     #   end
     #
     # Pass `src:` to lazy-load the panel via a Turbo Frame when the dialog
-    # opens — the block body becomes the loading state. `reload: true`
+    # opens — the block body becomes the loading state (`loading:` sets it
+    # when there's no block, e.g. the `dialog:` kwarg form). `reload: true`
     # re-fetches on every open instead of caching the first load. `**opts`
     # land on the root; `content:` is the panel's own option hash.
-    def dialog(open: false, src: nil, reload: false, content: {}, **opts, &block)
+    def dialog(open: false, src: nil, reload: false, loading: nil, content: {}, **opts, &block)
       opts[:data] = (opts[:data] || {}).merge(
         slot: "dialog",
         controller: [ "shadcnrb--dialog--component",
@@ -46,7 +47,7 @@ module Shadcnrb
       )
       content_tag(:div, **opts) do
         trigger_html, body = capture_parts(proxy, &block)
-        safe_join([ trigger_html, backdrop, panel(body, src:, reload:, **content) ])
+        safe_join([ trigger_html, backdrop, panel(body, src:, reload:, loading:, **content) ])
       end
     end
 
@@ -66,22 +67,14 @@ module Shadcnrb
       )
     end
 
-    def panel(body, src:, reload:, **opts)
+    def panel(body, src:, reload:, loading:, **opts)
       style = self.class.style
       opts[:data] =
         (opts[:data] || {}).merge(slot: "dialog-content", "shadcnrb--dialog--component-target": "content")
       opts[:class] = Shadcnrb::TailwindMerge.call(style.content, opts[:class])
 
       content_tag(:div, **opts) do
-        if src
-          frame_id = "dialog-frame-#{SecureRandom.hex(4)}"
-          loading = body.presence || content_tag(:p, "Loading...",
-            class: "text-sm text-muted-foreground animate-pulse")
-          frame_opts = { id: frame_id, "data-lazy-src": src }
-          frame_opts["data-lazy-reload"] = "" if reload
-          frame_opts["data-loading-html"] = loading.to_s if reload
-          body = content_tag(:"turbo-frame", loading, **frame_opts)
-        end
+        body = lazy_frame(body, src:, reload:, loading:, slot: "dialog") if src
 
         close_btn = button(
           variant: :ghost,
