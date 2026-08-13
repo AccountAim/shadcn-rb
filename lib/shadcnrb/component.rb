@@ -74,6 +74,41 @@ module Shadcnrb
       [ data&.dig(:action), *actions ].compact.join(" ")
     end
 
+    # Overlay kwargs on trigger-capable helpers (button, link):
+    #
+    #   sui.button "Edit", dialog: { src: profile_path }   # wraps the button
+    #   sui.button "Edit", dialog: "profile-dialog"        # references by id
+    #
+    # A Hash wraps the rendered element in that overlay as its trigger. A
+    # String stamps `data-<overlay>="<id>"` on the element; the overlay's
+    # controller listens document-wide, so the trigger can live anywhere.
+    OVERLAY_KWARGS = %i[dialog].freeze
+
+    # Pops the overlay kwarg from `opts` before rendering. Returns the
+    # [key, config] pair for `wrap_overlay` (Hash form), or nil after
+    # stamping the reference attribute (String form).
+    def extract_overlay!(opts)
+      key = OVERLAY_KWARGS.find { |k| opts.key?(k) }
+      return unless key
+
+      value = opts.delete(key)
+      return [ key, value ] if value.is_a?(Hash)
+
+      opts[:data] = (opts[:data] || {}).merge(key => value)
+      nil
+    end
+
+    def wrap_overlay(overlay, html)
+      return html unless overlay
+
+      key, config = overlay
+      unless @builder.respond_to?(key)
+        raise ArgumentError,
+          "#{key}: needs the #{key} component — bin/rails g shadcnrb:component #{key}"
+      end
+      @builder.public_send(key, **config) { |o| o.trigger { html } }
+    end
+
     # `current_page?` raises when passed `"#"` or a malformed hash. Wrap so
     # callers don't have to special-case placeholders or rescue in views.
     def safe_current_page?(options)
