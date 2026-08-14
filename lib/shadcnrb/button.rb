@@ -19,6 +19,7 @@ module Shadcnrb
     BARE_VARIANT = :bare
 
     def button(name = nil, variant: nil, size: :default, icon: nil, scope: nil, **opts, &block)
+      overlay = extract_overlay!(opts)
       variant = resolve_variant(variant, scope)
       # `icon:` with no text/block → render as an icon button at the icon
       # size unless the caller picked one explicitly.
@@ -31,26 +32,29 @@ module Shadcnrb
         opts[:data] =
           { slot: "button", variant: variant.to_s, size: size.to_s }.merge(opts[:data] || {})
       end
-      button_tag(**opts) do
+      html = button_tag(**opts) do
         content_with_icon(name, icon:, &block)
       end
+      wrap_overlay(overlay, html)
     end
 
     def button_to(name = nil, options = nil, variant: nil, size: :default, icon: nil,
       scope: nil, **html_opts, &block)
+      overlay = extract_overlay!(html_opts)
       variant = resolve_variant(variant, scope)
       unless variant == BARE_VARIANT
         html_opts[:class] = classes(variant, size, html_opts[:class])
         html_opts[:data] =
           { slot: "button", variant: variant.to_s, size: size.to_s }.merge(html_opts[:data] || {})
       end
-      if block || icon
+      html = if block || icon
         @builder.view_context.button_to(options || name, html_opts) do
           content_with_icon(name, icon:, &block)
         end
       else
         @builder.view_context.button_to(name, options, html_opts)
       end
+      wrap_overlay(overlay, html)
     end
 
     private

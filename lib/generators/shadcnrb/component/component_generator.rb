@@ -2,6 +2,7 @@
 
 require "rails/generators"
 require "yaml"
+require "generators/shadcnrb/install/install_generator"
 
 module Shadcnrb
   module Generators
@@ -25,6 +26,22 @@ module Shadcnrb
         end
       end
 
+      # `--force` overwrites live files but doesn't prune stragglers. Drop
+      # this component's entries from the install generator's stale lists so
+      # a single-component upgrade lands clean without a full reinstall.
+      def remove_stale_files
+        prefix = "app/components/shadcnrb/#{component_name}/"
+        stale = InstallGenerator::STALE_FILES.select { |rel| rel.start_with?(prefix) }
+        stale += InstallGenerator::STALE_PER_COMPONENT.map { |f| "#{prefix}#{f}" }
+
+        stale.each do |rel|
+          path = Rails.root.join(rel)
+          next unless File.exist?(path)
+          say_status :remove, "#{rel} (obsolete in current shadcnrb)"
+          File.delete(path)
+        end
+      end
+
       def copy_component_dir
         # The component class lives at `lib/shadcnrb/<name>.rb` (sibling to
         # the dir) — e.g. `Shadcnrb::Dialog` — so Zeitwerk can autoload it
@@ -44,6 +61,28 @@ module Shadcnrb
           dst = Rails.root.join("app/components/shadcnrb/#{component_name}/#{rel}")
           say_status :create, "app/components/shadcnrb/#{component_name}/#{rel}"
           copy_file src, dst, force: options["force"]
+        end
+      end
+
+      def pin_npm_packages
+        return if component_pins.empty?
+
+        importmap_path = Rails.root.join("config/importmap.rb")
+        unless File.exist?(importmap_path)
+          say_status :skip, "config/importmap.rb not found — pin #{component_pins.join(', ')} manually"
+          return
+        end
+
+        content = File.read(importmap_path)
+        component_pins.each do |package|
+          name = package.rpartition("@").first
+          if content.include?(%("#{name}"))
+            say_status :identical, "config/importmap.rb (#{name} already pinned)"
+            next
+          end
+
+          say_status :pin, "#{package} (vendored into vendor/javascript)"
+          run "bin/importmap pin #{package}"
         end
       end
 
@@ -101,6 +140,10 @@ module Shadcnrb
 
       def component_deps
         dependencies.dig(component_name, "components") || []
+      end
+
+      def component_pins
+        dependencies.dig(component_name, "pins") || []
       end
 
       # Components that are classes (e.g. FormBuilder < ActionView::Helpers::

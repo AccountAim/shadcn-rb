@@ -39,28 +39,26 @@ module Shadcnrb
     def theme_switcher(themes: DEFAULT_THEMES, **opts)
       opts[:data] = (opts[:data] || {}).merge(controller: "shadcnrb--theme-switcher--component")
 
-      dropdown_menu(**opts) do |m|
+      dropdown_menu(content: { class: "w-56" }, **opts) do |m|
         safe_join([
-          m.trigger(variant: :outline) do
-            safe_join([
-              tag.span("", class: "size-4 rounded-full bg-primary"),
-              tag.span("Theme")
-            ])
+          m.trigger do
+            button(variant: :outline) do
+              safe_join([
+                tag.span("", class: "size-4 rounded-full bg-primary"),
+                tag.span("Theme")
+              ])
+            end
           end,
-          m.content(class: "w-56") do
+          tag.div("Theme", class: "px-2 py-1.5 text-xs font-medium text-muted-foreground"),
+          content_tag(:div, class: "grid grid-cols-3 gap-1 p-1") do
+            safe_join(themes.map { |t| theme_swatch_button(t) })
+          end,
+          tag.div("", class: "my-1 h-px bg-border"),
+          tag.div("Mode", class: "px-2 py-1.5 text-xs font-medium text-muted-foreground"),
+          content_tag(:div, class: "grid grid-cols-2 gap-1 p-1") do
             safe_join([
-              tag.div("Theme", class: "px-2 py-1.5 text-xs font-medium text-muted-foreground"),
-              content_tag(:div, class: "grid grid-cols-3 gap-1 p-1") do
-                safe_join(themes.map { |t| theme_swatch_button(t) })
-              end,
-              tag.div("", class: "my-1 h-px bg-border"),
-              tag.div("Mode", class: "px-2 py-1.5 text-xs font-medium text-muted-foreground"),
-              content_tag(:div, class: "grid grid-cols-2 gap-1 p-1") do
-                safe_join([
-                  mode_button("light", "Light"),
-                  mode_button("dark",  "Dark")
-                ])
-              end
+              mode_button("light", "Light"),
+              mode_button("dark",  "Dark")
             ])
           end
         ])

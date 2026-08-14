@@ -5,22 +5,49 @@
 # states. Lazy-loading via `src:` uses Turbo Frames instead of React children.
 # upstream: dialog.tsx.
 #
-# shadcn divergence: child parts (`trigger`, `content`, `header`, `title`,
-# `close`, ...) are orphan-protected — they're private on the Dialog class
-# and reachable only through a `:dialog` `Shadcnrb::Scope` (yielded by
-# `sui.dialog do |d| ... end` or via `sui.dialog_proxy`). Calling
-# `sui.dialog_trigger` raises NoMethodError.
+# shadcn divergence: child parts (`header`, `title`, `close`, ...) are
+# orphan-protected — they're private on the Dialog class and reachable only
+# through a `:dialog` `Shadcnrb::Scope` (yielded by `sui.dialog do |d| ... end`
+# or via `sui.dialog_proxy`). Calling `sui.dialog_trigger` raises
+# NoMethodError.
 
 module Shadcnrb
   class Dialog < Component
-    def dialog(open: false, **opts, &block)
+    include Shadcnrb::Anchored::TriggerSlot
+
+    # The block is the dialog panel; `d.trigger` names what opens it — the
+    # same slot shape as tooltip / dropdown_menu. Click lives on the root
+    # (clicks inside the panel or backdrop are filtered out by the
+    # controller), so the trigger markup is used verbatim. A dialog rendered
+    # already open (server-driven confirmations) simply has no trigger.
+    #
+    #   sui.dialog do |d|
+    #     d.trigger { sui.button "Edit profile", variant: :outline }
+    #     d.header do
+    #       d.title "Edit profile"
+    #       d.description "Update your display name."
+    #     end
+    #     d.footer { d.close "Save" }
+    #   end
+    #
+    # Pass `src:` to lazy-load the panel via a Turbo Frame when the dialog
+    # opens — the block body becomes the loading state (`loading:` sets it
+    # when there's no block, e.g. the `dialog:` kwarg form). `reload: true`
+    # re-fetches on every open instead of caching the first load. `**opts`
+    # land on the root; `content:` is the panel's own option hash.
+    def dialog(open: false, src: nil, reload: false, loading: nil, content: {}, **opts, &block)
       opts[:data] = (opts[:data] || {}).merge(
         slot: "dialog",
-        controller: "shadcnrb--dialog--component",
+        controller: [ "shadcnrb--dialog--component",
+                      opts.dig(:data, :controller) ].compact.join(" "),
+        action: merge_action(opts[:data],
+          "click->shadcnrb--dialog--component#open",
+          "keydown.esc@window->shadcnrb--dialog--component#keydown"),
         "shadcnrb--dialog--component-open-value": open
       )
       content_tag(:div, **opts) do
-        block ? capture(proxy, &block) : "".html_safe
+        trigger_html, body = capture_parts(proxy, &block)
+        safe_join([ trigger_html, backdrop, panel(body, src:, reload:, loading:, **content) ])
       end
     end
 
@@ -30,49 +57,25 @@ module Shadcnrb
       Scope.new(@builder, kind: :dialog, component: self)
     end
 
-    def trigger(name = nil, variant: :default, size: :default, scope: nil, **opts, &block)
-      opts[:data] = (opts[:data] || {}).merge(
-        slot: "dialog-trigger",
-        action: "click->shadcnrb--dialog--component#open"
-      )
-      button(name, variant:, size:, **opts, &block)
-    end
+    private
 
-    # Renders the dialog panel (backdrop + content). Pass `src:` to lazy-load
-    # content via a Turbo Frame when the dialog opens:
-    #
-    #   d.content(src: edit_profile_path) do
-    #     tag.p "Loading...", class: "text-sm text-muted-foreground animate-pulse"
-    #   end
-    #
-    # Pass `reload: true` to re-fetch content every time the dialog opens
-    # (instead of caching the first load):
-    #
-    #   d.content(src: edit_profile_path, reload: true)
-    def content(src: nil, reload: false, scope: nil, **opts, &block)
-      style = self.class.style
-      backdrop = tag.div("",
+    def backdrop
+      tag.div("",
         data: { slot: "dialog-overlay", "shadcnrb--dialog--component-target": "backdrop",
                 action: "click->shadcnrb--dialog--component#close" },
-        class: style.backdrop
+        class: self.class.style.backdrop
       )
+    end
 
+    def panel(body, src:, reload:, loading:, **opts)
+      style = self.class.style
       opts[:data] =
         (opts[:data] || {}).merge(slot: "dialog-content", "shadcnrb--dialog--component-target": "content")
       opts[:class] = Shadcnrb::TailwindMerge.call(style.content, opts[:class])
 
-      panel = content_tag(:div, **opts) do
-        body = if src
-          frame_id = "dialog-frame-#{SecureRandom.hex(4)}"
-          loading = block ? capture(&block) : content_tag(:p, "Loading...",
-            class: "text-sm text-muted-foreground animate-pulse")
-          frame_opts = { id: frame_id, "data-lazy-src": src }
-          frame_opts["data-lazy-reload"] = "" if reload
-          frame_opts["data-loading-html"] = loading.to_s if reload
-          content_tag(:"turbo-frame", loading, **frame_opts)
-        else
-          scope.capture_block(&block)
-        end
+      content_tag(:div, **opts) do
+        body = lazy_frame(body, src:, reload:, loading:, slot: "dialog") if src
+
         close_btn = button(
           variant: :ghost,
           size: :"icon-sm",
@@ -82,8 +85,6 @@ module Shadcnrb
         ) { icon(:x) }
         safe_join([ body, close_btn ])
       end
-
-      safe_join([ backdrop, panel ])
     end
 
     def header(scope: nil, **opts, &block)
@@ -126,6 +127,6 @@ module Shadcnrb
       end
     end
 
-    private :trigger, :content, :header, :footer, :title, :description, :close
+    private :header, :footer, :title, :description, :close
   end
 end

@@ -25,6 +25,7 @@ module Shadcnrb
     #   sui.link_to "More",      more_path, variant: :ghost, size: :sm
     def link_to(name = nil, options = nil, variant: nil, size: :default, icon: nil,
       scope: nil, **html_opts, &block)
+      overlay = extract_overlay!(html_opts)
       # Caller's `variant:` always wins. Otherwise default to `:bare` when
       # called inside a non-top-level scope (e.g. `i.link_to` from a
       # dropdown item) so the wrapper's row styling isn't overlaid. Top-
@@ -32,12 +33,13 @@ module Shadcnrb
       # the regular `:link` default.
       variant ||= scope&.parent ? BARE_VARIANT : :link
       html_opts[:class] = link_classes(variant.to_sym, size.to_sym, html_opts[:class])
-      if block || icon
+      html = if block || icon
         body = content_with_icon(name, icon:, &block)
         @builder.view_context.link_to(options || name || "#", html_opts) { body }
       else
         @builder.view_context.link_to(name, options, html_opts)
       end
+      wrap_overlay(overlay, html)
     end
 
     private

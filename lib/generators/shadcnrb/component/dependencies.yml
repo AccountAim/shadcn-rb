@@ -22,6 +22,9 @@ label:
 separator:
   components: []
 
+skeleton:
+  components: []
+
 switch:
   components: []
 
@@ -31,12 +34,16 @@ badge:
 button:
   components: []
 
+# Modal overlays: `anchored` supplies the trigger-slot mechanics (not
+# positioning — the panels are centered/edge-anchored by CSS).
 dialog:
   components:
+    - anchored
     - button
 
 drawer:
   components:
+    - anchored
     - button
 
 sidebar:
@@ -59,6 +66,7 @@ button_group:
 
 dropdown_menu:
   components:
+    - anchored
     - button
     - link
 
@@ -101,15 +109,28 @@ form_builder:
 
 navigation_menu:
   components:
+    - anchored
     - link
 
 collapsible:
   components: []
 
-# Both overlays render the trigger from a caller-supplied block, so they
-# depend on nothing.
-tooltip:
+# Shared trigger-slot plumbing + positioning controller for anchored
+# overlays. Not a renderable component — nothing to mix into the Builder.
+# Placement math comes from @floating-ui/dom, vendored into the host app
+# via `bin/importmap pin` (resolves its transitive pins too).
+anchored:
   components: []
+  skip_wire: true
+  pins:
+    - "@floating-ui/dom@1.6.12"
+
+# Both overlays render the trigger from a caller-supplied block, so beyond
+# the shared anchored plumbing they depend on nothing.
+tooltip:
+  components:
+    - anchored
 
 hover_card:
-  components: []
+  components:
+    - anchored
