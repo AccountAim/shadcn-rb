@@ -7,8 +7,10 @@ class Shadcnrb::HoverCard::Style
   # Placement is inline-styled by the anchored controller. `overflow-visible`
   # undoes the UA's `[popover] { overflow: auto }`.
   def content
-    "fixed z-50 w-64 overflow-visible rounded-md border bg-popover p-4 " \
-      "text-popover-foreground shadow-md outline-hidden " \
-      "hidden data-[state=open]:block"
+    <<~CLASSES.squish
+      fixed z-50 w-64 overflow-visible rounded-md border bg-popover p-4
+      text-popover-foreground shadow-md outline-hidden
+      hidden data-[state=open]:block
+    CLASSES
   end
 end

@@ -3,7 +3,7 @@
 module Shadcnrb
   module Layout::Component
     def layout
-      (@_layout ||= Shadcnrb::Layout.new(self)).layout
+      (@layout ||= Shadcnrb::Layout.new(self)).layout
     end
   end
 end

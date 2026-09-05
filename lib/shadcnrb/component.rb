@@ -62,7 +62,9 @@ module Shadcnrb
     def content_with_icon(name = nil, icon: nil, &block)
       parts = []
       parts << self.icon(icon) if icon
-      parts << name.to_s      if name.present?
+      # Span-wrapped like upstream's JSX children — the `[&>span]` hide/truncate
+      # rules (sidebar icon-collapse, button truncation) match on it.
+      parts << tag.span(name.to_s) if name.present?
       parts << @builder.capture(&block) if block
       return "".html_safe if parts.empty?
       safe_join(parts, " ")
@@ -99,8 +101,10 @@ module Shadcnrb
       return [ key, value ] if value.is_a?(Hash)
 
       unless REFERABLE_OVERLAYS.include?(key)
-        raise ArgumentError, "#{key}: takes a Hash of #{key} options — " \
-          "reference by id only works for #{REFERABLE_OVERLAYS.join(' and ')}"
+        raise ArgumentError, <<~MSG.squish
+          #{key}: takes a Hash of #{key} options —
+          reference by id only works for #{REFERABLE_OVERLAYS.join(' and ')}
+        MSG
       end
 
       opts[:data] = (opts[:data] || {}).merge(key => value)

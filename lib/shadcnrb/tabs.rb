@@ -2,7 +2,9 @@
 
 # shadcn divergence: child part (`tab`) is orphan-protected — it only renders
 # when called through a `:tabs`-kind `Shadcnrb::Scope` (yielded by
-# `sui.tabs do |t| ... end`).
+# `sui.tabs do |t| ... end`). Inactive panels render with `hidden` and
+# `data-state` server-side, not only once the controller connects, so lazy
+# frames inside them don't load before the first paint.
 
 module Shadcnrb
   class Tabs < Component
@@ -23,7 +25,8 @@ module Shadcnrb
     # `variant:` — `:default` (rounded muted pill, shadcn default) or `:line`
     # (underline-style tab strip). `orientation:` — `:horizontal` or
     # `:vertical`. `list:` / `content:` are option hashes for the tab strip
-    # and every panel.
+    # and every panel; `list: false` renders the panels alone so a
+    # `tabs_strip` can drive them from elsewhere on the page.
     def tabs(variant: :default, orientation: :horizontal, list: {}, content: {}, **opts, &block)
       scope = Scope.new(@builder, kind: :tabs, component: self)
       # Saved and restored so tabs rendered inside another tab's panel don't
@@ -43,19 +46,36 @@ module Shadcnrb
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.root, opts[:class])
 
       content_tag(:div, **opts) do
-        strip = tab_list(variant:, orientation:, **list) do
-          safe_join(tabs.each_with_index.map { |t, i|
-            tab_trigger(t[:name], value: "tab-#{i + 1}", variant:, **t[:opts])
-          })
-        end
+        strip = strip_for(tabs, variant:, orientation:, **list) if list
         panels = tabs.each_with_index.map { |t, i|
-          tab_panel(t[:body], value: "tab-#{i + 1}", **content)
+          tab_panel(t[:body], value: "tab-#{i + 1}", active: i == active, **content)
         }
-        safe_join([ strip, *panels ])
+        safe_join([ strip, *panels ].compact)
       end
     end
 
+    # A detached tab strip for the `sui.tabs id: tabs, list: false` root;
+    # its triggers carry `data-tabs` and can sit anywhere in the document.
+    # `names` repeats the tab labels in order, `trigger:` applies to every
+    # trigger, and remaining options go to the list element. `variant:`
+    # should match the root's.
+    #
+    #   sui.tabs_strip tabs: "revenue-tabs", names: %w[Chart Data]
+    def tabs_strip(tabs:, names:, variant: :default, trigger: {}, **opts)
+      data = (trigger[:data] || {}).merge(tabs:)
+      entries = names.map { |name| { name:, opts: trigger.merge(data:) } }
+      strip_for(entries, variant:, orientation: :horizontal, **opts)
+    end
+
     private
+
+    def strip_for(entries, variant:, orientation:, **opts)
+      tab_list(variant:, orientation:, **opts) do
+        safe_join(entries.each_with_index.map { |entry, i|
+          tab_trigger(entry[:name], value: "tab-#{i + 1}", variant:, **entry[:opts])
+        })
+      end
+    end
 
     # Collects (label, panel) pairs during the block pass; `tabs` renders
     # the strip and panels from them afterwards. Returns nothing.
@@ -91,10 +111,12 @@ module Shadcnrb
       button_tag(name.to_s, role: "tab", **opts)
     end
 
-    def tab_panel(body, value:, **opts)
-      opts[:data] = (opts[:data] || {}).merge(slot: "tabs-content", "tab-value": value)
+    def tab_panel(body, value:, active:, **opts)
+      opts[:data] = (opts[:data] || {}).merge(
+        slot: "tabs-content", "tab-value": value, state: active ? "active" : "inactive"
+      )
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.content, opts[:class])
-      content_tag(:div, body, role: "tabpanel", **opts)
+      content_tag(:div, body, role: "tabpanel", hidden: !active, **opts)
     end
   end
 end

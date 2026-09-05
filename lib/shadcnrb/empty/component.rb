@@ -3,11 +3,11 @@
 module Shadcnrb
   module Empty::Component
     def empty(*args, **kwargs, &block)
-      (@_empty ||= Shadcnrb::Empty.new(self)).empty(*args, **kwargs, &block)
+      (@empty ||= Shadcnrb::Empty.new(self)).empty(*args, **kwargs, &block)
     end
 
     def empty_proxy
-      (@_empty ||= Shadcnrb::Empty.new(self)).proxy
+      (@empty ||= Shadcnrb::Empty.new(self)).proxy
     end
   end
 end

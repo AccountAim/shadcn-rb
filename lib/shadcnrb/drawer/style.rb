@@ -2,10 +2,12 @@
 
 class Shadcnrb::Drawer::Style
   def backdrop
-    "fixed inset-0 z-50 bg-black/50 pointer-events-none opacity-0 transition-opacity duration-300 " \
-      "data-[state=open]:pointer-events-auto data-[state=open]:opacity-100 " \
-      "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 " \
-      "data-[state=open]:animate-in data-[state=open]:fade-in-0"
+    <<~CLASSES.squish
+      fixed inset-0 z-50 bg-black/50 pointer-events-none opacity-0 transition-opacity duration-300
+      data-[state=open]:pointer-events-auto data-[state=open]:opacity-100
+      data-[state=closed]:animate-out data-[state=closed]:fade-out-0
+      data-[state=open]:animate-in data-[state=open]:fade-in-0
+    CLASSES
   end
 
   def content_base = "fixed z-50 flex h-auto flex-col bg-background shadow-lg transition-transform duration-300 ease-in-out"

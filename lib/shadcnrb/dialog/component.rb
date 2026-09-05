@@ -7,11 +7,11 @@
 module Shadcnrb
   module Dialog::Component
     def dialog(*args, **kwargs, &block)
-      (@_dialog ||= Shadcnrb::Dialog.new(self)).dialog(*args, **kwargs, &block)
+      (@dialog ||= Shadcnrb::Dialog.new(self)).dialog(*args, **kwargs, &block)
     end
 
     def dialog_proxy
-      (@_dialog ||= Shadcnrb::Dialog.new(self)).proxy
+      (@dialog ||= Shadcnrb::Dialog.new(self)).proxy
     end
   end
 end

@@ -20,6 +20,7 @@ module Shadcnrb
 
       namespace "shadcnrb:install"
       source_root File.expand_path("templates", __dir__)
+      class_option :force, type: :boolean, default: false
 
       def check_runtime_gems
         # tailwind_merge is the one universal runtime dep — every copied
@@ -144,7 +145,7 @@ module Shadcnrb
         # dropdown_menu) depend on it. Auto-install so `sui.icon` works
         # immediately after setup.
         say_status :install, "icon component (auto-included)"
-        run "bin/rails generate shadcnrb:component icon"
+        run "bin/rails generate shadcnrb:component icon #{'--force' if options['force']}".strip
       end
 
       def post_install_message

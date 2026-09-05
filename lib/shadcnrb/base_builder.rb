@@ -19,8 +19,19 @@ module Shadcnrb
     delegate :render, :capture, :form_with, :fields_for, :current_page?, to: :@view_context
     delegate_missing_to :@view_context
 
+    OVERLAY_OUTLET_ID = "shadcnrb-overlays"
+
     def initialize(view_context)
       @view_context = view_context
+    end
+
+    # Empty append target for server-driven overlays (streamed dialogs,
+    # drawers). Anchored overlays render inline at their trigger and need no
+    # outlet; drop this in the layout once, next to `toaster`:
+    #   <%= sui.overlay_outlet %>
+    #   turbo_stream.append(Shadcnrb::BaseBuilder::OVERLAY_OUTLET_ID, partial: "dialog")
+    def overlay_outlet
+      tag.div(id: OVERLAY_OUTLET_ID, data: { slot: "overlay-outlet" })
     end
   end
 end
