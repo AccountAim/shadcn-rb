@@ -51,7 +51,8 @@ sidebar:
     - link
 
 toast:
-  components: []
+  components:
+    - icon
 
 alert:
   components:

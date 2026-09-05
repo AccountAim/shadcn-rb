@@ -2,6 +2,10 @@
 
 module Shadcnrb
   module Toast::Component
+    def toaster(**kwargs)
+      (@toast ||= Shadcnrb::Toast.new(self)).toaster(**kwargs)
+    end
+
     def toast(*args, **kwargs, &block)
       (@toast ||= Shadcnrb::Toast.new(self)).toast(*args, **kwargs, &block)
     end
