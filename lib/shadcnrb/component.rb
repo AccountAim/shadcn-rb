@@ -62,7 +62,9 @@ module Shadcnrb
     def content_with_icon(name = nil, icon: nil, &block)
       parts = []
       parts << self.icon(icon) if icon
-      parts << name.to_s      if name.present?
+      # Span-wrapped like upstream's JSX children — the `[&>span]` hide/truncate
+      # rules (sidebar icon-collapse, button truncation) match on it.
+      parts << tag.span(name.to_s) if name.present?
       parts << @builder.capture(&block) if block
       return "".html_safe if parts.empty?
       safe_join(parts, " ")

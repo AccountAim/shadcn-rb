@@ -29,10 +29,14 @@ class Shadcnrb::Sidebar::Style
   def root_container_left       = "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
   def root_container_right      = "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]"
   def root_container_icon_default  = "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)] group-data-[side=left]:border-r group-data-[side=right]:border-l"
-  def root_container_icon_floating = "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+calc(var(--spacing)*4)+2px)]"
+  # p-2 is md-scoped: the same container doubles as the mobile drawer (upstream
+  # hides it on mobile behind a Sheet), which must sit flush below the header.
+  def root_container_icon_floating = "md:p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+calc(var(--spacing)*4)+2px)]"
+  def root_container_icon_inset    = "md:p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+calc(var(--spacing)*4))]" # borderless panel — no +2px
 
-  # inner sidebar div
-  def root_inner = "flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow-sm"
+  # inner sidebar div. Floating chrome is md-scoped: on mobile the panel is the
+  # full-bleed drawer.
+  def root_inner = "flex h-full w-full flex-col bg-sidebar md:group-data-[variant=floating]:rounded-lg md:group-data-[variant=floating]:border md:group-data-[variant=floating]:border-sidebar-border md:group-data-[variant=floating]:shadow-sm"
 
   def header  = "flex flex-col gap-2 p-2"
   def footer  = "flex flex-col gap-2 p-2"
@@ -54,14 +58,15 @@ class Shadcnrb::Sidebar::Style
   def menu_button_variant_outline = "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]"
   def menu_button_size_default    = "h-8 text-sm"
   def menu_button_size_sm         = "h-7 text-xs"
-  def menu_button_size_lg         = "h-12 text-sm group-data-[collapsible=icon]:p-0!"
+  def menu_button_size_md         = "h-10 text-sm"
+  def menu_button_size_lg         = "h-12 text-sm group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center"
   def menu_button_inactive        = "text-sidebar-foreground"
   def menu_button_active          = "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
 
-  def menu_action_base           = "absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform peer-hover/menu-button:text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 after:absolute after:-inset-2 md:after:hidden peer-data-[size=sm]/menu-button:top-1 peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 group-data-[collapsible=icon]:hidden"
+  def menu_action_base           = "absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform peer-hover/menu-button:text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 after:absolute after:-inset-2 md:after:hidden peer-data-[size=sm]/menu-button:top-1 peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=md]/menu-button:top-2 peer-data-[size=lg]/menu-button:top-2.5 group-data-[collapsible=icon]:hidden"
   def menu_action_show_on_hover  = "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground data-[state=open]:opacity-100 md:opacity-0"
 
-  def menu_badge          = "pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium text-sidebar-foreground tabular-nums select-none peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground peer-data-[size=sm]/menu-button:top-1 peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 group-data-[collapsible=icon]:hidden"
+  def menu_badge          = "pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium text-sidebar-foreground tabular-nums select-none peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground peer-data-[size=sm]/menu-button:top-1 peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=md]/menu-button:top-2 peer-data-[size=lg]/menu-button:top-2.5 group-data-[collapsible=icon]:hidden"
   def menu_skeleton       = "flex h-8 items-center gap-2 rounded-md px-2"
   def menu_skeleton_icon  = "size-4 rounded-md bg-sidebar-accent animate-pulse"
   def menu_skeleton_text  = "h-4 flex-1 bg-sidebar-accent animate-pulse rounded-md"
@@ -73,8 +78,10 @@ class Shadcnrb::Sidebar::Style
   def menu_sub_button_size_md = "text-sm"
 
   def separator     = "mx-2 w-auto border-sidebar-border"
-  def inset         = "relative flex w-full flex-1 flex-col bg-background min-h-0 md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2 overflow-hidden"
-  def inset_header  = "flex h-14 shrink-0 items-center gap-2 border-b px-6 bg-background"
+  # ml-2 only for offcanvas collapse (panel off-screen); icon collapse keeps the
+  # padded panel in view, whose p-2 already supplies the 8px gap.
+  def inset         = "relative flex w-full flex-1 flex-col bg-background min-h-0 md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[collapsible=offcanvas]:ml-2 overflow-hidden"
+  def inset_header  = "flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-background"
   def inset_content = "flex-1 overflow-y-auto"
 
   def trigger = "inline-flex items-center justify-center rounded-md h-7 w-7 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"

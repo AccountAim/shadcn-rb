@@ -90,11 +90,16 @@ module Shadcnrb
         floating_or_inset ? style.root_gap_icon_floating : style.root_gap_icon_default
       )
 
+      container_icon_class = case variant
+      when :floating then style.root_container_icon_floating
+      when :inset then style.root_container_icon_inset
+      else style.root_container_icon_default
+      end
+
       container_class = Shadcnrb::TailwindMerge.call(
         style.root_container_base,
         side == :left ? style.root_container_left : style.root_container_right,
-        floating_or_inset ? style.root_container_icon_floating :
-                            style.root_container_icon_default,
+        container_icon_class,
         opts.delete(:class)
       )
 
@@ -247,6 +252,7 @@ module Shadcnrb
 
       size_class = case size
       when :sm then style.menu_button_size_sm
+      when :md then style.menu_button_size_md
       when :lg then style.menu_button_size_lg
       else          style.menu_button_size_default
       end
