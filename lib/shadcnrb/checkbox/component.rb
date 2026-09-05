@@ -3,7 +3,7 @@
 module Shadcnrb
   module Checkbox::Component
     def checkbox(*args, **kwargs, &block)
-      (@_checkbox ||= Shadcnrb::Checkbox.new(self)).checkbox(*args, **kwargs, &block)
+      (@checkbox ||= Shadcnrb::Checkbox.new(self)).checkbox(*args, **kwargs, &block)
     end
   end
 end

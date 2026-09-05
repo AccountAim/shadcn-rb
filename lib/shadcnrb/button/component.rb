@@ -5,11 +5,11 @@
 module Shadcnrb
   module Button::Component
     def button(*args, **kwargs, &block)
-      (@_button ||= Shadcnrb::Button.new(self)).button(*args, **kwargs, &block)
+      (@button ||= Shadcnrb::Button.new(self)).button(*args, **kwargs, &block)
     end
 
     def button_to(*args, **kwargs, &block)
-      (@_button ||= Shadcnrb::Button.new(self)).button_to(*args, **kwargs, &block)
+      (@button ||= Shadcnrb::Button.new(self)).button_to(*args, **kwargs, &block)
     end
   end
 end

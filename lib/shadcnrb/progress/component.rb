@@ -3,7 +3,7 @@
 module Shadcnrb
   module Progress::Component
     def progress(*args, **kwargs, &block)
-      (@_progress ||= Shadcnrb::Progress.new(self)).progress(*args, **kwargs, &block)
+      (@progress ||= Shadcnrb::Progress.new(self)).progress(*args, **kwargs, &block)
     end
   end
 end

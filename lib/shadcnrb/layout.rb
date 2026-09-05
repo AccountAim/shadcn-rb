@@ -87,7 +87,7 @@ module Shadcnrb
     end
 
     def layout
-      @_namespace ||= Namespace.new(@builder.view_context)
+      @layout ||= Namespace.new(@builder.view_context)
     end
   end
 end
