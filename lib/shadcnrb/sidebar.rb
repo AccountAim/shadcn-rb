@@ -2,8 +2,10 @@
 
 # shadcn divergence: Stimulus controller replaces Radix `SidebarProvider` +
 # `useSidebar` hook; offcanvas mode uses CSS transforms + media queries instead
-# of Radix Sheet. Inline init script in `sidebar_wrapper` handles pre-paint
-# state restore. upstream: sidebar.tsx.
+# of Radix Sheet. State persists in the `sidebar_state` cookie (upstream's
+# SIDEBAR_COOKIE_NAME) so the server renders the stored state directly; the
+# inline init script only forces the mobile offcanvas collapse pre-paint.
+# upstream: sidebar.tsx.
 #
 # shadcn divergence: child parts (`sidebar`, `trigger`, `inset`, `header`,
 # `menu`, ...) are orphan-protected — they only render when called through a
@@ -18,7 +20,7 @@ module Shadcnrb
     WIDTH_ICON = "3rem"
 
     SIDEBAR_INIT_SCRIPT = <<~JS.freeze
-      (function(){var w=document.currentScript.parentElement;var d=w.querySelector('[data-shadcnrb--sidebar--component-target=detector]');var desktop=d&&getComputedStyle(d).display!=='none';var i=w.querySelector('[data-slot=sidebar]');var c=w.querySelector('[data-slot=sidebar-container]');var cfg=(i&&i.dataset.configuredCollapsible)||'offcanvas';var s,m;if(desktop){s=localStorage.getItem('sidebar-state')==='collapsed'?'collapsed':'expanded';m=cfg;}else{s='collapsed';m='offcanvas';}if(c)c.style.transition='none';w.dataset.state=s;if(i){i.dataset.state=s;i.dataset.collapsible=s==='collapsed'?m:'';}if(c){void c.offsetHeight;requestAnimationFrame(function(){c.style.transition='';});}})();
+      (function(){var w=document.currentScript.parentElement;var d=w.querySelector('[data-shadcnrb--sidebar--component-target=detector]');if(d&&getComputedStyle(d).display!=='none')return;var i=w.querySelector('[data-slot=sidebar]');var c=w.querySelector('[data-slot=sidebar-container]');if(c)c.style.transition='none';w.dataset.state='collapsed';if(i){i.dataset.state='collapsed';i.dataset.collapsible='offcanvas';}if(c){void c.offsetHeight;requestAnimationFrame(function(){c.style.transition='';});}})();
     JS
 
     # `bounded: true` for demo/preview cards — swaps the default `h-svh`
@@ -38,7 +40,7 @@ module Shadcnrb
       opts[:data] = (opts[:data] || {}).merge(
         slot: "sidebar-wrapper",
         controller: "shadcnrb--sidebar--component",
-        state: "expanded",
+        state: persisted_state,
         collapsible: "offcanvas"
       )
       # shadcn divergence: kind is `:sidebar` (not `:sidebar_wrapper`) so
@@ -97,8 +99,8 @@ module Shadcnrb
       )
 
       outer_data = {
-        state: "expanded",
-        collapsible: "",
+        state: persisted_state,
+        collapsible: persisted_state == "collapsed" ? collapsible : "",
         "configured-collapsible": collapsible,
         variant:,
         side:,
@@ -381,5 +383,12 @@ module Shadcnrb
             :group_content, :menu, :menu_item, :menu_button, :menu_action,
             :menu_badge, :menu_skeleton, :menu_sub, :menu_sub_item,
             :menu_sub_button, :separator, :sidebar_input
+
+    private
+
+    def persisted_state
+      @persisted_state ||=
+        @builder.view_context.cookies["sidebar_state"] == "collapsed" ? "collapsed" : "expanded"
+    end
   end
 end
