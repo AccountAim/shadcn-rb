@@ -99,8 +99,10 @@ module Shadcnrb
       return [ key, value ] if value.is_a?(Hash)
 
       unless REFERABLE_OVERLAYS.include?(key)
-        raise ArgumentError, "#{key}: takes a Hash of #{key} options — " \
-          "reference by id only works for #{REFERABLE_OVERLAYS.join(' and ')}"
+        raise ArgumentError, <<~MSG.squish
+          #{key}: takes a Hash of #{key} options —
+          reference by id only works for #{REFERABLE_OVERLAYS.join(' and ')}
+        MSG
       end
 
       opts[:data] = (opts[:data] || {}).merge(key => value)

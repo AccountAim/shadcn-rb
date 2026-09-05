@@ -9,9 +9,11 @@ class Shadcnrb::DropdownMenu::Style
   # Placement is inline-styled by the anchored controller. `p-1` keeps
   # interior items clear of the rounded corners without `overflow-hidden`.
   def content
-    "fixed z-50 min-w-[8rem] rounded-md border bg-popover p-1 " \
-      "text-popover-foreground shadow-md " \
-      "hidden data-[state=open]:block"
+    <<~CLASSES.squish
+      fixed z-50 min-w-[8rem] rounded-md border bg-popover p-1
+      text-popover-foreground shadow-md
+      hidden data-[state=open]:block
+    CLASSES
   end
 
   def label     = "px-2 py-1.5 text-sm font-medium"
@@ -24,10 +26,12 @@ class Shadcnrb::DropdownMenu::Style
   # clicks land anywhere inside. The `text-left` fights `<button>`'s
   # `text-align: center` default for the shortcut form.
   def item
-    "relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm " \
-      "outline-none select-none hover:bg-accent hover:text-accent-foreground " \
-      "disabled:pointer-events-none disabled:opacity-50 " \
-      "[&>a]:flex-1 [&>button]:flex-1 [&>form]:flex-1 [&>form>button]:w-full [&>form>button]:text-left"
+    <<~CLASSES.squish
+      relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm
+      outline-none select-none hover:bg-accent hover:text-accent-foreground
+      disabled:pointer-events-none disabled:opacity-50
+      [&>a]:flex-1 [&>button]:flex-1 [&>form]:flex-1 [&>form>button]:w-full [&>form>button]:text-left
+    CLASSES
   end
 
   # Sub-menu trigger inherits item's flex row + hover but adds open-state
@@ -38,8 +42,10 @@ class Shadcnrb::DropdownMenu::Style
 
   # Anchors to the right of the parent item instead of below a trigger.
   def sub_content
-    "fixed z-50 min-w-[8rem] rounded-md border bg-popover p-1 " \
-      "text-popover-foreground shadow-md " \
-      "hidden data-[state=open]:block"
+    <<~CLASSES.squish
+      fixed z-50 min-w-[8rem] rounded-md border bg-popover p-1
+      text-popover-foreground shadow-md
+      hidden data-[state=open]:block
+    CLASSES
   end
 end

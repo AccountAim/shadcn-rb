@@ -6,9 +6,11 @@ class Shadcnrb::Sidebar::Style
   # Mobile overlay that dims the page when the sidebar is expanded on
   # small viewports. Fades in via group-data state from the wrapper.
   def mobile_backdrop
-    "fixed inset-0 z-[5] bg-black/50 opacity-0 pointer-events-none transition-opacity md:hidden " \
-      "group-data-[state=expanded]/sidebar-wrapper:opacity-100 " \
-      "group-data-[state=expanded]/sidebar-wrapper:pointer-events-auto"
+    <<~CLASSES.squish
+      fixed inset-0 z-[5] bg-black/50 opacity-0 pointer-events-none transition-opacity md:hidden
+      group-data-[state=expanded]/sidebar-wrapper:opacity-100
+      group-data-[state=expanded]/sidebar-wrapper:pointer-events-auto
+    CLASSES
   end
 
   # collapsible=none variant
@@ -78,8 +80,10 @@ class Shadcnrb::Sidebar::Style
   def trigger = "inline-flex items-center justify-center rounded-md h-7 w-7 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
 
   def rail
-    "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear " \
-      "after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] " \
-      "hover:after:bg-sidebar-border group-data-[side=left]:right-0 group-data-[side=right]:left-0 sm:flex"
+    <<~CLASSES.squish
+      absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear
+      after:absolute after:inset-y-0 after:left-1/2 after:w-[2px]
+      hover:after:bg-sidebar-border group-data-[side=left]:right-0 group-data-[side=right]:left-0 sm:flex
+    CLASSES
   end
 end

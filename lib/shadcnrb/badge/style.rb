@@ -2,11 +2,13 @@
 
 class Shadcnrb::Badge::Style
   def base
-    "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent " \
-      "px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] " \
-      "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 " \
-      "aria-invalid:border-destructive aria-invalid:ring-destructive/20 " \
-      "[&>svg]:pointer-events-none [&>svg]:size-3"
+    <<~CLASSES.squish
+      inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent
+      px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow]
+      focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50
+      aria-invalid:border-destructive aria-invalid:ring-destructive/20
+      [&>svg]:pointer-events-none [&>svg]:size-3
+    CLASSES
   end
 
   def variants
