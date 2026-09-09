@@ -13,22 +13,27 @@ module Shadcnrb
       { key: "orange",  label: "Orange",  swatch: "bg-orange-500" }
     ].freeze
 
-    # Classes for `<html>` from the `shadcnrb_theme` / `shadcnrb_mode`
-    # cookies the switcher writes, so the server renders the chosen palette
-    # and nothing flashes on load (same idea as the sidebar's cookie):
+    # Classes for `<html>`, so the server renders the chosen palette and
+    # nothing flashes on load. `theme:` / `mode:` come from wherever the app
+    # keeps them; nil falls through to the `shadcnrb_theme` / `shadcnrb_mode`
+    # cookies the switcher writes:
     #
     #   <html class="<%= sui.theme_class %>">
-    def theme_class
+    #   <html class="<%= sui.theme_class(theme: user.theme, mode: user.mode) %>">
+    def theme_class(theme: nil, mode: nil)
       cookies = @builder.view_context.cookies
-      theme = cookies["shadcnrb_theme"].to_s[/\A[a-z0-9-]+\z/]
+      theme = (theme || cookies["shadcnrb_theme"]).to_s[/\A[a-z0-9-]+\z/]
+      mode ||= cookies["shadcnrb_mode"]
       [
         ("sui-theme-#{theme}" if theme && theme != "default"),
-        ("dark" if cookies["shadcnrb_mode"] == "dark")
+        ("dark" if mode.to_s == "dark")
       ].compact.join(" ")
     end
 
     # Renders a dropdown with theme swatches + a dark/light toggle. Pair with
-    # `theme_class` on `<html>`.
+    # `theme_class` on `<html>`. Every pick writes the cookies and dispatches
+    # `shadcnrb--theme-switcher--component:change` with `{ theme, mode }` —
+    # listen to that to persist the choice server-side.
     #
     #   <%= sui.theme_switcher %>
     #   <%= sui.theme_switcher themes: [
