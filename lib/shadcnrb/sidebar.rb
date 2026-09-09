@@ -285,6 +285,12 @@ module Shadcnrb
           action: merge_action(html_opts[:data], "click->shadcnrb--collapsible--component#toggle")
         )
         html_opts[:type] ||= "button"
+        if @flyout
+          @flyout[:data][:label] = name
+          # The flyout replaces the native tooltip on the rail.
+          html_opts.delete(:title)
+        end
+
         button_tag(**html_opts) { content_with_icon(name, icon:, &block) }
       elsif dropdown_trigger
         # The surrounding dropdown root owns the click; the slot marker scopes
@@ -334,8 +340,9 @@ module Shadcnrb
     end
 
     # `sui.collapsible` for a sub-menu. With `flyout: true` the content also
-    # opens as a dropdown panel to the right of the trigger while the rail is
-    # collapsed to icons — same list, written once:
+    # opens on hover as a panel to the right of the trigger while the rail is
+    # collapsed to icons — same list, written once, headed by the menu
+    # button's label:
     #
     #   s.collapsible open: true, flyout: true do |c|
     #     s.menu_item { s.menu_button("Docs", collapsible: true, icon: :folder) { c.chevron } }
@@ -343,19 +350,25 @@ module Shadcnrb
     #   end
     #
     # The sidebar controller flips the flyout on and off with the rail; while
-    # it is on, the click opens the flyout instead of toggling the inline list.
+    # it is on, the trigger's click is inert and the inline state is kept.
     def collapsible(flyout: false, content: {}, scope: nil, **opts, &block)
       return @builder.collapsible(content:, **opts, &block) unless flyout
 
       @flyouts = (@flyouts || 0) + 1
-      content = { id: "sidebar-flyout-#{@flyouts}" }.merge(content)
       style = self.class.style
-      @builder.collapsible(content:, **opts, dropdown_menu: {
+      # `data` is filled in by `menu_button collapsible: true` before
+      # `c.content` renders it — the label lives on the button.
+      content = { id: "sidebar-flyout-#{@flyouts}", data: {} }.merge(content)
+      outer, @flyout = @flyout, content
+      @builder.collapsible(content:, **opts, hover_card: {
         panel: content[:id], side: :right, align: :start, enabled: false,
+        delay: 150, close_delay: 200,
         class: style.menu_flyout,
         content: { class: style.menu_flyout_content },
         data: { "shadcnrb--sidebar--component-target": "flyout" }
       }, &block)
+    ensure
+      @flyout = outer
     end
 
     def menu_sub(scope: nil, **opts, &block)
