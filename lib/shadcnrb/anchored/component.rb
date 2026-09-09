@@ -47,10 +47,7 @@ module Shadcnrb
       # navigation_menu) instead of the shared one.
       def anchored_panel(opts, slot:, side:, align:,
         controller: "shadcnrb--anchored--component")
-        raise ArgumentError, "Unknown side #{side.inspect}. Valid: #{SIDES.inspect}" unless
-          SIDES.include?(side.to_sym)
-        raise ArgumentError, "Unknown align #{align.inspect}. Valid: #{ALIGNS.inspect}" unless
-          ALIGNS.include?(align.to_sym)
+        validate_placement!(side, align)
 
         opts[:popover] = "manual"
         opts[:data] = (opts[:data] || {}).merge(
@@ -61,6 +58,13 @@ module Shadcnrb
           "#{controller}-target": "content"
         )
         opts
+      end
+
+      def validate_placement!(side, align)
+        raise ArgumentError, "Unknown side #{side.inspect}. Valid: #{SIDES.inspect}" unless
+          SIDES.include?(side.to_sym)
+        raise ArgumentError, "Unknown align #{align.inspect}. Valid: #{ALIGNS.inspect}" unless
+          ALIGNS.include?(align.to_sym)
       end
     end
   end
