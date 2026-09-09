@@ -23,6 +23,7 @@ module Shadcnrb
     #   sui.link_to "Delete",    record_path(r), variant: :destructive,
     #                         method: :delete, data: { turbo_confirm: "Sure?" }
     #   sui.link_to "More",      more_path, variant: :ghost, size: :sm
+    #   sui.link_to post_path(post) { "Read more" }             # block form: URL first
     def link_to(name = nil, options = nil, variant: nil, size: :default, icon: nil,
       scope: nil, **html_opts, &block)
       overlay = extract_overlay!(html_opts)
@@ -33,6 +34,12 @@ module Shadcnrb
       # the regular `:link` default.
       variant ||= scope&.parent ? BARE_VARIANT : :link
       html_opts[:class] = link_classes(variant.to_sym, size.to_sym, html_opts[:class])
+      # Rails' block form: `link_to(url) { ... }` — the first argument is the
+      # URL, not visible text.
+      if block && options.nil?
+        options = name
+        name = nil
+      end
       html = if block || icon
         body = content_with_icon(name, icon:, &block)
         @builder.view_context.link_to(options || name || "#", html_opts) { body }
