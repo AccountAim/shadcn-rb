@@ -2,26 +2,26 @@
  *
  * This file holds everything shadcnrb needs at the CSS layer: the base
  * palette tokens, the `.dark` overrides, the `@layer base` that paints the
- * body, and the `.theme-<name>` preset classes. Keeping it in one file
+ * body, and the `.sui-theme-<name>` preset classes. Keeping it in one file
  * (imported once from `application.css`) means your app's CSS entry stays
  * vanilla and shadcnrb can be swapped out by deleting one import.
  *
- * Theme presets: each `.theme-<name>` class overrides a small subset of
+ * Theme presets: each `.sui-theme-<name>` class overrides a small subset of
  * tokens — typically just `--color-primary` and `--color-ring` — so the
  * rest of the palette stays neutral and swapping themes doesn't touch
  * backgrounds, borders, etc.
  *
  * Apply by setting the class on `<html>`:
- *   <html class="theme-blue">            — blue in light mode
- *   <html class="dark theme-blue">       — blue in dark mode
+ *   <html class="sui-theme-blue">            — blue in light mode
+ *   <html class="dark sui-theme-blue">       — blue in dark mode
  *
  * `sui.theme_switcher` writes the choice to cookies and toggles the class;
  * `<html class="<%%= sui.theme_class %%>">` renders it server-side, so
  * nothing flashes on reload.
  *
  * To add your own brand theme:
- *   .theme-brand      { --color-primary: …; --color-primary-foreground: …; --color-ring: …; }
- *   .dark.theme-brand { --color-primary: …; --color-primary-foreground: …; --color-ring: …; }
+ *   .sui-theme-brand      { --color-primary: …; --color-primary-foreground: …; --color-ring: …; }
+ *   .dark.sui-theme-brand { --color-primary: …; --color-primary-foreground: …; --color-ring: …; }
  * then pass `themes: [..., "brand"]` to `sui.theme_switcher`.
  */
 
@@ -106,17 +106,17 @@
   }
 }
 
-.theme-blue        { --color-primary: oklch(0.547 0.245 262.88); --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.547 0.245 262.88); }
-.dark.theme-blue   { --color-primary: oklch(0.72 0.165 254.62); --color-primary-foreground: oklch(0.145 0 0);     --color-ring: oklch(0.72 0.165 254.62); }
+.sui-theme-blue        { --color-primary: oklch(0.547 0.245 262.88); --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.547 0.245 262.88); }
+.dark.sui-theme-blue   { --color-primary: oklch(0.72 0.165 254.62); --color-primary-foreground: oklch(0.145 0 0);     --color-ring: oklch(0.72 0.165 254.62); }
 
-.theme-green       { --color-primary: oklch(0.58 0.17 152.5);    --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.58 0.17 152.5); }
-.dark.theme-green  { --color-primary: oklch(0.77 0.16 152.5);    --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.77 0.16 152.5); }
+.sui-theme-green       { --color-primary: oklch(0.58 0.17 152.5);    --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.58 0.17 152.5); }
+.dark.sui-theme-green  { --color-primary: oklch(0.77 0.16 152.5);    --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.77 0.16 152.5); }
 
-.theme-rose        { --color-primary: oklch(0.645 0.246 16.44);  --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.645 0.246 16.44); }
-.dark.theme-rose   { --color-primary: oklch(0.74 0.19 16.44);    --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.74 0.19 16.44); }
+.sui-theme-rose        { --color-primary: oklch(0.645 0.246 16.44);  --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.645 0.246 16.44); }
+.dark.sui-theme-rose   { --color-primary: oklch(0.74 0.19 16.44);    --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.74 0.19 16.44); }
 
-.theme-violet      { --color-primary: oklch(0.541 0.281 293.01); --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.541 0.281 293.01); }
-.dark.theme-violet { --color-primary: oklch(0.72 0.21 293);      --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.72 0.21 293); }
+.sui-theme-violet      { --color-primary: oklch(0.541 0.281 293.01); --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.541 0.281 293.01); }
+.dark.sui-theme-violet { --color-primary: oklch(0.72 0.21 293);      --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.72 0.21 293); }
 
-.theme-orange      { --color-primary: oklch(0.705 0.213 47.6);   --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.705 0.213 47.6); }
-.dark.theme-orange { --color-primary: oklch(0.78 0.18 47.6);     --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.78 0.18 47.6); }
+.sui-theme-orange      { --color-primary: oklch(0.705 0.213 47.6);   --color-primary-foreground: oklch(0.985 0 0);    --color-ring: oklch(0.705 0.213 47.6); }
+.dark.sui-theme-orange { --color-primary: oklch(0.78 0.18 47.6);     --color-primary-foreground: oklch(0.145 0 0);    --color-ring: oklch(0.78 0.18 47.6); }

@@ -2,7 +2,7 @@
 
 module Shadcnrb
   class ThemeSwitcher < Component
-    # Ships with these theme keys. Extend by adding `.theme-<name>` blocks
+    # Ships with these theme keys. Extend by adding `.sui-theme-<name>` blocks
     # in your CSS and passing your own `themes:` list.
     DEFAULT_THEMES = [
       { key: "default", label: "Default", swatch: "bg-neutral-900" },
@@ -22,7 +22,7 @@ module Shadcnrb
       cookies = @builder.view_context.cookies
       theme = cookies["shadcnrb_theme"].to_s[/\A[a-z0-9-]+\z/]
       [
-        ("theme-#{theme}" if theme && theme != "default"),
+        ("sui-theme-#{theme}" if theme && theme != "default"),
         ("dark" if cookies["shadcnrb_mode"] == "dark")
       ].compact.join(" ")
     end
