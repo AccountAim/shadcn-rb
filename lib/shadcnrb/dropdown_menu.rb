@@ -47,6 +47,7 @@ module Shadcnrb
     # content). The controller takes it over as the popover panel while
     # `enabled:` holds and hands it back to inline rendering otherwise; the
     # block body renders in place. Only `content: { class: }` applies.
+    # `enabled: false` also makes the trigger inert.
     def dropdown_menu(side: :bottom, align: :start,
       src: nil, reload: false, loading: nil, panel: nil, enabled: true, content: {}, **opts, &block)
       opts[:data] = (opts[:data] || {}).merge(
@@ -57,18 +58,8 @@ module Shadcnrb
           "keydown.esc@window->shadcnrb--dropdown-menu--component#dismiss")
       )
 
-      opts[:data][:"shadcnrb--dropdown-menu--component-enabled-value"] = false unless enabled
-      if panel
-        validate_placement!(side, align)
-        opts[:data].merge!(
-          "shadcnrb--dropdown-menu--component-panel-value": panel,
-          "shadcnrb--dropdown-menu--component-panel-class-value":
-            Shadcnrb::TailwindMerge.call(self.class.style.content, content[:class]),
-          "shadcnrb--dropdown-menu--component-side-value": side,
-          "shadcnrb--dropdown-menu--component-align-value": align
-        )
-      end
-
+      opts = anchored_adopt(opts, panel:, enabled:, side:, align:, content:,
+        controller: "shadcnrb--dropdown-menu--component")
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.root, opts[:class])
       scope = Scope.new(@builder, kind: :dropdown_menu, component: self)
       content_tag(:div, **opts) do

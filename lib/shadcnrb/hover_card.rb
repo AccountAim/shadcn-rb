@@ -43,13 +43,21 @@ module Shadcnrb
     # `reload: true` re-fetches on every open instead. The endpoint wraps
     # its response in a `<turbo-frame id: request.headers["Turbo-Frame"]>`
     # tag.
+    #
+    # `panel:` adopts an element by id as the panel instead: the controller
+    # takes it over as the popover while `enabled:` holds and hands it back
+    # to inline rendering otherwise, and the block body renders in place.
+    # Only `content: { class: }` applies. `enabled: false` also makes the
+    # trigger inert. The sidebar's icon-rail flyout is built on this.
     def hover_card(side: :bottom, align: :center, delay: 600, close_delay: 300,
-      src: nil, reload: false, loading: nil, content: {}, **opts, &block)
+      src: nil, reload: false, loading: nil, panel: nil, enabled: true, content: {}, **opts, &block)
       opts = anchored_root(opts, slot: "hover-card", delay:, close_delay:)
+      opts = anchored_adopt(opts, panel:, enabled:, side:, align:, content:)
       scope = Scope.new(@builder, kind: :hover_card, component: self)
       content_tag(:div, **opts) do
         trigger_html, body = capture_parts(scope, &block)
-        safe_join([ trigger_html, panel(body, side:, align:, src:, reload:, loading:, **content) ])
+        body = panel(body, side:, align:, src:, reload:, loading:, **content) unless panel
+        safe_join([ trigger_html, body ])
       end
     end
 

@@ -60,6 +60,26 @@ module Shadcnrb
         opts
       end
 
+      # `panel:` names an element by id for the controller to adopt as the
+      # panel while `enabled:` holds (see the engine's `adopt` / `release`).
+      # The panel look travels as a value since the element is rendered
+      # elsewhere; `class:` in `content` extends it.
+      def anchored_adopt(opts, panel:, enabled:, side:, align:, content:,
+        controller: "shadcnrb--anchored--component")
+        opts[:data][:"#{controller}-enabled-value"] = false unless enabled
+        return opts unless panel
+
+        validate_placement!(side, align)
+        opts[:data].merge!(
+          "#{controller}-panel-value": panel,
+          "#{controller}-panel-class-value":
+            Shadcnrb::TailwindMerge.call(self.class.style.content, content[:class]),
+          "#{controller}-side-value": side,
+          "#{controller}-align-value": align
+        )
+        opts
+      end
+
       def validate_placement!(side, align)
         raise ArgumentError, "Unknown side #{side.inspect}. Valid: #{SIDES.inspect}" unless
           SIDES.include?(side.to_sym)
