@@ -6,8 +6,8 @@ module Shadcnrb
       (@theme_switcher ||= Shadcnrb::ThemeSwitcher.new(self)).theme_switcher(*args, **kwargs, &block)
     end
 
-    def theme_switcher_init
-      (@theme_switcher ||= Shadcnrb::ThemeSwitcher.new(self)).theme_switcher_init
+    def theme_class
+      (@theme_switcher ||= Shadcnrb::ThemeSwitcher.new(self)).theme_class
     end
   end
 end

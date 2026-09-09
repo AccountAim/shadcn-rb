@@ -15,9 +15,9 @@
  *   <html class="theme-blue">            — blue in light mode
  *   <html class="dark theme-blue">       — blue in dark mode
  *
- * `sui.theme_switcher` reads/writes localStorage + toggles the class.
- * `sui.theme_switcher_init` in `<head>` prevents a flash of default colors
- * on reload.
+ * `sui.theme_switcher` writes the choice to cookies and toggles the class;
+ * `<html class="<%%= sui.theme_class %%>">` renders it server-side, so
+ * nothing flashes on reload.
  *
  * To add your own brand theme:
  *   .theme-brand      { --color-primary: …; --color-primary-foreground: …; --color-ring: …; }
