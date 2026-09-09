@@ -333,6 +333,31 @@ module Shadcnrb
       end
     end
 
+    # `sui.collapsible` for a sub-menu. With `flyout: true` the content also
+    # opens as a dropdown panel to the right of the trigger while the rail is
+    # collapsed to icons — same list, written once:
+    #
+    #   s.collapsible open: true, flyout: true do |c|
+    #     s.menu_item { s.menu_button("Docs", collapsible: true, icon: :folder) { c.chevron } }
+    #     c.content { s.menu_sub { ... } }
+    #   end
+    #
+    # The sidebar controller flips the flyout on and off with the rail; while
+    # it is on, the click opens the flyout instead of toggling the inline list.
+    def collapsible(flyout: false, content: {}, scope: nil, **opts, &block)
+      return @builder.collapsible(content:, **opts, &block) unless flyout
+
+      @flyouts = (@flyouts || 0) + 1
+      content = { id: "sidebar-flyout-#{@flyouts}" }.merge(content)
+      style = self.class.style
+      @builder.collapsible(content:, **opts, dropdown_menu: {
+        panel: content[:id], side: :right, align: :start, enabled: false,
+        class: style.menu_flyout,
+        content: { class: style.menu_flyout_content },
+        data: { "shadcnrb--sidebar--component-target": "flyout" }
+      }, &block)
+    end
+
     def menu_sub(scope: nil, **opts, &block)
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.menu_sub, opts[:class])
       opts[:data] = (opts[:data] || {}).merge(slot: "sidebar-menu-sub")
@@ -387,7 +412,7 @@ module Shadcnrb
     private :sidebar, :trigger, :rail, :inset, :inset_header, :inset_content,
             :header, :footer, :content, :group, :group_label, :group_action,
             :group_content, :menu, :menu_item, :menu_button, :menu_action,
-            :menu_badge, :menu_skeleton, :menu_sub, :menu_sub_item,
+            :menu_badge, :menu_skeleton, :collapsible, :menu_sub, :menu_sub_item,
             :menu_sub_button, :separator, :sidebar_input
 
     private
