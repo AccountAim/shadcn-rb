@@ -103,12 +103,11 @@ module Shadcnrb
 
       def add_tailwind_themes
         # Ships alongside application.css. Imported via `@import "./shadcnrb_themes.css"`.
-        # Skip if the user already has a customized copy; otherwise always refresh.
+        # An existing copy may be customized, so it is kept unless `--force` is given.
         themes_path = Rails.root.join("app/assets/tailwind/shadcnrb_themes.css")
-        if File.exist?(themes_path)
+        if File.exist?(themes_path) && !options[:force]
           say_status :identical, "app/assets/tailwind/shadcnrb_themes.css (keeping existing)"
         else
-          say_status :create, "app/assets/tailwind/shadcnrb_themes.css"
           template "shadcnrb_themes.css.erb", themes_path
         end
       end

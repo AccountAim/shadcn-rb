@@ -2,7 +2,7 @@
 
 module Shadcnrb
   class ThemeSwitcher < Component
-    # Ships with these theme keys. Extend by adding `.theme-<name>` blocks
+    # Ships with these theme keys. Extend by adding `.sui-theme-<name>` blocks
     # in your CSS and passing your own `themes:` list.
     DEFAULT_THEMES = [
       { key: "default", label: "Default", swatch: "bg-neutral-900" },
@@ -13,24 +13,27 @@ module Shadcnrb
       { key: "orange",  label: "Orange",  swatch: "bg-orange-500" }
     ].freeze
 
-    # Inline script to apply the saved theme + mode BEFORE the page paints.
-    # Drop this in <head> to avoid a flash of the default palette:
+    # Classes for `<html>`, so the server renders the chosen palette and
+    # nothing flashes on load. `theme:` / `mode:` come from wherever the app
+    # keeps them; nil falls through to the `shadcnrb_theme` / `shadcnrb_mode`
+    # cookies the switcher writes:
     #
-    #   <%= sui.theme_switcher_init %>
-    def theme_switcher_init
-      javascript_tag <<~JS
-        (function(){
-          var t = localStorage.getItem("shadcnrb-theme");
-          var m = localStorage.getItem("shadcnrb-mode");
-          var html = document.documentElement;
-          if (t && t !== "default") html.classList.add("theme-" + t);
-          if (m === "dark") html.classList.add("dark");
-        })();
-      JS
+    #   <html class="<%= sui.theme_class %>">
+    #   <html class="<%= sui.theme_class(theme: user.theme, mode: user.mode) %>">
+    def theme_class(theme: nil, mode: nil)
+      cookies = @builder.view_context.cookies
+      theme = (theme || cookies["shadcnrb_theme"]).to_s[/\A[a-z0-9-]+\z/]
+      mode ||= cookies["shadcnrb_mode"]
+      [
+        ("sui-theme-#{theme}" if theme && theme != "default"),
+        ("dark" if mode.to_s == "dark")
+      ].compact.join(" ")
     end
 
     # Renders a dropdown with theme swatches + a dark/light toggle. Pair with
-    # `theme_switcher_init` in <head> to avoid a FOUC.
+    # `theme_class` on `<html>`. Every pick writes the cookies and dispatches
+    # `shadcnrb--theme-switcher--component:change` with `{ theme, mode }` —
+    # listen to that to persist the choice server-side.
     #
     #   <%= sui.theme_switcher %>
     #   <%= sui.theme_switcher themes: [

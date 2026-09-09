@@ -3,9 +3,9 @@
 # shadcn divergence: Stimulus controller replaces Radix `SidebarProvider` +
 # `useSidebar` hook; offcanvas mode uses CSS transforms + media queries instead
 # of Radix Sheet. State persists in the `sidebar_state` cookie (upstream's
-# SIDEBAR_COOKIE_NAME) so the server renders the stored state directly; the
-# inline init script only forces the mobile offcanvas collapse pre-paint.
-# upstream: sidebar.tsx.
+# SIDEBAR_COOKIE_NAME) so the server renders the stored state directly — or
+# pass `state:` from the app's own store; the inline init script only forces
+# the mobile offcanvas collapse pre-paint. upstream: sidebar.tsx.
 #
 # shadcn divergence: child parts (`sidebar`, `trigger`, `inset`, `header`,
 # `menu`, ...) are orphan-protected — they only render when called through a
@@ -18,16 +18,25 @@ module Shadcnrb
   class Sidebar < Component
     WIDTH      = "16rem"
     WIDTH_ICON = "3rem"
+    STATES     = %w[expanded collapsed].freeze
 
     SIDEBAR_INIT_SCRIPT = <<~JS.freeze
       (function(){var w=document.currentScript.parentElement;var d=w.querySelector('[data-shadcnrb--sidebar--component-target=detector]');if(d&&getComputedStyle(d).display!=='none')return;var i=w.querySelector('[data-slot=sidebar]');var c=w.querySelector('[data-slot=sidebar-container]');if(c)c.style.transition='none';w.dataset.state='collapsed';if(i){i.dataset.state='collapsed';i.dataset.collapsible='offcanvas';}if(c){void c.offsetHeight;requestAnimationFrame(function(){c.style.transition='';});}})();
     JS
 
+    # `state:` (`:expanded` / `:collapsed`) renders the app's stored state;
+    # nil falls through to the cookie. Every desktop toggle writes the cookie
+    # and dispatches `shadcnrb--sidebar--component:change` with `{ state }`.
+    #
     # `bounded: true` for demo/preview cards — swaps the default `h-svh`
     # viewport height for `h-full` and creates a containing block (via
     # transform) so the sidebar's `position:fixed` container snaps to the
     # parent instead of the viewport.
-    def sidebar_wrapper(bounded: false, **opts, &block)
+    def sidebar_wrapper(state: nil, bounded: false, **opts, &block)
+      @state = state ? state.to_s : persisted_state
+      raise ArgumentError, "Unknown state #{state.inspect}. Valid: #{STATES.inspect}" unless
+        STATES.include?(@state)
+
       wrapper_class = self.class.style.wrapper
       if bounded
         wrapper_class = Shadcnrb::TailwindMerge.call(
@@ -40,7 +49,8 @@ module Shadcnrb
       opts[:data] = (opts[:data] || {}).merge(
         slot: "sidebar-wrapper",
         controller: "shadcnrb--sidebar--component",
-        state: persisted_state,
+        state: @state,
+        "shadcnrb--sidebar--component-state-value": @state,
         collapsible: "offcanvas"
       )
       # shadcn divergence: kind is `:sidebar` (not `:sidebar_wrapper`) so
@@ -104,8 +114,8 @@ module Shadcnrb
       )
 
       outer_data = {
-        state: persisted_state,
-        collapsible: persisted_state == "collapsed" ? collapsible : "",
+        state: current_state,
+        collapsible: current_state == "collapsed" ? collapsible : "",
         "configured-collapsible": collapsible,
         variant:,
         side:,
@@ -285,6 +295,12 @@ module Shadcnrb
           action: merge_action(html_opts[:data], "click->shadcnrb--collapsible--component#toggle")
         )
         html_opts[:type] ||= "button"
+        if @flyout
+          @flyout[:data][:label] = name
+          # The flyout replaces the native tooltip on the rail.
+          html_opts.delete(:title)
+        end
+
         button_tag(**html_opts) { content_with_icon(name, icon:, &block) }
       elsif dropdown_trigger
         # The surrounding dropdown root owns the click; the slot marker scopes
@@ -331,6 +347,38 @@ module Shadcnrb
         )
         safe_join(parts)
       end
+    end
+
+    # `sui.collapsible` for a sub-menu. With `flyout: true` the content also
+    # opens on hover as a panel to the right of the trigger while the rail is
+    # collapsed to icons — same list, written once, headed by the menu
+    # button's label:
+    #
+    #   s.collapsible open: true, flyout: true do |c|
+    #     s.menu_item { s.menu_button("Docs", collapsible: true, icon: :folder) { c.chevron } }
+    #     c.content { s.menu_sub { ... } }
+    #   end
+    #
+    # The sidebar controller flips the flyout on and off with the rail; while
+    # it is on, the trigger's click is inert and the inline state is kept.
+    def collapsible(flyout: false, content: {}, scope: nil, **opts, &block)
+      return @builder.collapsible(content:, **opts, &block) unless flyout
+
+      @flyouts = (@flyouts || 0) + 1
+      style = self.class.style
+      # `data` is filled in by `menu_button collapsible: true` before
+      # `c.content` renders it — the label lives on the button.
+      content = { id: "sidebar-flyout-#{@flyouts}", data: {} }.merge(content)
+      outer, @flyout = @flyout, content
+      @builder.collapsible(content:, **opts, hover_card: {
+        panel: content[:id], side: :right, align: :start, enabled: false,
+        delay: 150, close_delay: 200,
+        class: style.menu_flyout,
+        content: { class: style.menu_flyout_content },
+        data: { "shadcnrb--sidebar--component-target": "flyout" }
+      }, &block)
+    ensure
+      @flyout = outer
     end
 
     def menu_sub(scope: nil, **opts, &block)
@@ -387,10 +435,15 @@ module Shadcnrb
     private :sidebar, :trigger, :rail, :inset, :inset_header, :inset_content,
             :header, :footer, :content, :group, :group_label, :group_action,
             :group_content, :menu, :menu_item, :menu_button, :menu_action,
-            :menu_badge, :menu_skeleton, :menu_sub, :menu_sub_item,
+            :menu_badge, :menu_skeleton, :collapsible, :menu_sub, :menu_sub_item,
             :menu_sub_button, :separator, :sidebar_input
 
     private
+
+    # `sidebar` rendered through `sui.sidebar_proxy` has no wrapper to set it.
+    def current_state
+      @state || persisted_state
+    end
 
     def persisted_state
       @persisted_state ||=

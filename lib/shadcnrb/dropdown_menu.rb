@@ -41,8 +41,15 @@ module Shadcnrb
     # `src:` / `reload:` / `loading:` lazy-load the menu via a Turbo Frame,
     # same contract as `sui.dialog` — the lazy partial reaches `m.item` etc.
     # through `sui.dropdown_menu_proxy`.
+    #
+    # `panel:` is the third way to supply the panel: the id of an element
+    # rendered elsewhere (usually inside the block, e.g. a collapsible's
+    # content). The controller takes it over as the popover panel while
+    # `enabled:` holds and hands it back to inline rendering otherwise; the
+    # block body renders in place. Only `content: { class: }` applies.
+    # `enabled: false` also makes the trigger inert.
     def dropdown_menu(side: :bottom, align: :start,
-      src: nil, reload: false, loading: nil, content: {}, **opts, &block)
+      src: nil, reload: false, loading: nil, panel: nil, enabled: true, content: {}, **opts, &block)
       opts[:data] = (opts[:data] || {}).merge(
         slot: "dropdown-menu",
         controller: [ "shadcnrb--dropdown-menu--component", opts.dig(:data, :controller) ].compact.join(" "),
@@ -50,12 +57,15 @@ module Shadcnrb
           "click->shadcnrb--dropdown-menu--component#toggle",
           "keydown.esc@window->shadcnrb--dropdown-menu--component#dismiss")
       )
+
+      opts = anchored_adopt(opts, panel:, enabled:, side:, align:, content:,
+        controller: "shadcnrb--dropdown-menu--component")
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.root, opts[:class])
       scope = Scope.new(@builder, kind: :dropdown_menu, component: self)
       content_tag(:div, **opts) do
         trigger_html, body = capture_parts(scope, &block)
         body = lazy_frame(body, src:, reload:, loading:, slot: "dropdown-menu") if src
-        safe_join([ trigger_html, panel(body, side:, align:, **content) ])
+        safe_join([ trigger_html, panel ? body : panel(body, side:, align:, **content) ])
       end
     end
 
@@ -140,7 +150,7 @@ module Shadcnrb
         if block
           slot.button_to(nil, name, method:, **opts, &block)
         else
-          slot.button_to(name, options, method:, **opts)
+          slot.button_to(name, options, method:, icon:, **opts)
         end
       elsif block
         # User-content block: yield a child scope so `i.link_to` etc.

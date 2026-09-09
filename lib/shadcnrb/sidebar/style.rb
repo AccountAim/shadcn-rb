@@ -71,6 +71,26 @@ class Shadcnrb::Sidebar::Style
   def menu_skeleton_icon  = "size-4 rounded-md bg-sidebar-accent animate-pulse"
   def menu_skeleton_text  = "h-4 flex-1 bg-sidebar-accent animate-pulse rounded-md"
 
+  # Flyout wrapper (the hover card root around a sub-menu collapsible):
+  # lights the trigger while its panel is open.
+  def menu_flyout = "block [&[data-state=open]_[data-slot=sidebar-menu-button]]:bg-sidebar-accent [&[data-state=open]_[data-slot=sidebar-menu-button]]:text-sidebar-accent-foreground"
+
+  # Added to the collapsible content while it is the flyout panel. The
+  # header is the group label from `data-label`. `[popover]` scopes the
+  # overrides to that takeover and outranks the icon-mode hidden rules and
+  # indent rail on `menu_sub` / `menu_sub_button`.
+  def menu_flyout_content
+    <<~CLASSES.squish
+      min-w-40 p-1 bg-sidebar text-sidebar-foreground
+      before:content-[attr(data-label)] before:block before:px-2 before:py-1.5
+      before:text-xs before:font-medium before:text-sidebar-foreground/70
+      [&[popover]_[data-slot=sidebar-menu-sub]]:flex [&[popover]_[data-slot=sidebar-menu-sub]]:mx-0
+      [&[popover]_[data-slot=sidebar-menu-sub]]:translate-x-0 [&[popover]_[data-slot=sidebar-menu-sub]]:border-l-0
+      [&[popover]_[data-slot=sidebar-menu-sub]]:px-0 [&[popover]_[data-slot=sidebar-menu-sub]]:py-0
+      [&[popover]_[data-slot=sidebar-menu-sub-button]]:flex [&[popover]_[data-slot=sidebar-menu-sub-button]]:translate-x-0
+    CLASSES
+  end
+
   def menu_sub              = "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5 group-data-[collapsible=icon]:hidden"
   def menu_sub_item         = "group/menu-sub-item relative"
   def menu_sub_button_base  = "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground ring-sidebar-ring outline-hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden [&>a]:flex-1 [&>button]:flex-1 [&>form]:flex-1 [&>form>button]:w-full [&>form>button]:text-left"
