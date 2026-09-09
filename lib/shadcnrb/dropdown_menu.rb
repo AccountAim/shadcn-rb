@@ -140,7 +140,7 @@ module Shadcnrb
         if block
           slot.button_to(nil, name, method:, **opts, &block)
         else
-          slot.button_to(name, options, method:, **opts)
+          slot.button_to(name, options, method:, icon:, **opts)
         end
       elsif block
         # User-content block: yield a child scope so `i.link_to` etc.
