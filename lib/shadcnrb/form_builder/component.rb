@@ -63,8 +63,17 @@ data: { slot: "native-select-wrapper" }) do
         super(value, _inject(options, button_classes))
       end
 
+      # Renders through `sui.button` so `icon:`, `variant:` and `size:` work and
+      # the markup matches a standalone button. Keeps Rails' conventions: a bare
+      # options hash as the first argument, and the model-derived default label
+      # (skipped for icon-only buttons).
       def button(value = nil, options = {}, &block)
-        super(value, _inject(options, button_classes), &block)
+        if value.is_a?(Hash)
+          options = value
+          value = nil
+        end
+        value ||= submit_default_value unless block || options[:icon]
+        @template.sui.button(value, **options.reverse_merge(type: :submit), &block)
       end
 
       # Bundled shortcut: renders `form_field` with label + control + hint/error
