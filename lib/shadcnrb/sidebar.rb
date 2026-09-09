@@ -3,9 +3,9 @@
 # shadcn divergence: Stimulus controller replaces Radix `SidebarProvider` +
 # `useSidebar` hook; offcanvas mode uses CSS transforms + media queries instead
 # of Radix Sheet. State persists in the `sidebar_state` cookie (upstream's
-# SIDEBAR_COOKIE_NAME) so the server renders the stored state directly; the
-# inline init script only forces the mobile offcanvas collapse pre-paint.
-# upstream: sidebar.tsx.
+# SIDEBAR_COOKIE_NAME) so the server renders the stored state directly — or
+# pass `state:` from the app's own store; the inline init script only forces
+# the mobile offcanvas collapse pre-paint. upstream: sidebar.tsx.
 #
 # shadcn divergence: child parts (`sidebar`, `trigger`, `inset`, `header`,
 # `menu`, ...) are orphan-protected — they only render when called through a
@@ -18,16 +18,25 @@ module Shadcnrb
   class Sidebar < Component
     WIDTH      = "16rem"
     WIDTH_ICON = "3rem"
+    STATES     = %w[expanded collapsed].freeze
 
     SIDEBAR_INIT_SCRIPT = <<~JS.freeze
       (function(){var w=document.currentScript.parentElement;var d=w.querySelector('[data-shadcnrb--sidebar--component-target=detector]');if(d&&getComputedStyle(d).display!=='none')return;var i=w.querySelector('[data-slot=sidebar]');var c=w.querySelector('[data-slot=sidebar-container]');if(c)c.style.transition='none';w.dataset.state='collapsed';if(i){i.dataset.state='collapsed';i.dataset.collapsible='offcanvas';}if(c){void c.offsetHeight;requestAnimationFrame(function(){c.style.transition='';});}})();
     JS
 
+    # `state:` (`:expanded` / `:collapsed`) renders the app's stored state;
+    # nil falls through to the cookie. Every desktop toggle writes the cookie
+    # and dispatches `shadcnrb--sidebar--component:change` with `{ state }`.
+    #
     # `bounded: true` for demo/preview cards — swaps the default `h-svh`
     # viewport height for `h-full` and creates a containing block (via
     # transform) so the sidebar's `position:fixed` container snaps to the
     # parent instead of the viewport.
-    def sidebar_wrapper(bounded: false, **opts, &block)
+    def sidebar_wrapper(state: nil, bounded: false, **opts, &block)
+      @state = state ? state.to_s : persisted_state
+      raise ArgumentError, "Unknown state #{state.inspect}. Valid: #{STATES.inspect}" unless
+        STATES.include?(@state)
+
       wrapper_class = self.class.style.wrapper
       if bounded
         wrapper_class = Shadcnrb::TailwindMerge.call(
@@ -40,7 +49,8 @@ module Shadcnrb
       opts[:data] = (opts[:data] || {}).merge(
         slot: "sidebar-wrapper",
         controller: "shadcnrb--sidebar--component",
-        state: persisted_state,
+        state: @state,
+        "shadcnrb--sidebar--component-state-value": @state,
         collapsible: "offcanvas"
       )
       # shadcn divergence: kind is `:sidebar` (not `:sidebar_wrapper`) so
@@ -104,8 +114,8 @@ module Shadcnrb
       )
 
       outer_data = {
-        state: persisted_state,
-        collapsible: persisted_state == "collapsed" ? collapsible : "",
+        state: current_state,
+        collapsible: current_state == "collapsed" ? collapsible : "",
         "configured-collapsible": collapsible,
         variant:,
         side:,
@@ -429,6 +439,11 @@ module Shadcnrb
             :menu_sub_button, :separator, :sidebar_input
 
     private
+
+    # `sidebar` rendered through `sui.sidebar_proxy` has no wrapper to set it.
+    def current_state
+      @state || persisted_state
+    end
 
     def persisted_state
       @persisted_state ||=
