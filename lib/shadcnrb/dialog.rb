@@ -5,6 +5,10 @@
 # states. Lazy-loading via `src:` uses Turbo Frames instead of React children.
 # upstream: dialog.tsx.
 #
+# shadcn divergence: no portal. Backdrop and panel are `popover="manual"`
+# elements the controller shows in the top layer, so no ancestor transform,
+# filter or overflow can box them in. See dialog/component_controller.js.
+#
 # shadcn divergence: child parts (`header`, `title`, `close`, ...) are
 # orphan-protected — they're private on the Dialog class and reachable only
 # through a `:dialog` `Shadcnrb::Scope` (yielded by `sui.dialog do |d| ... end`
@@ -61,6 +65,7 @@ module Shadcnrb
 
     def backdrop
       tag.div("",
+        popover: "manual",
         data: { slot: "dialog-overlay", "shadcnrb--dialog--component-target": "backdrop",
                 action: "click->shadcnrb--dialog--component#close" },
         class: self.class.style.backdrop
@@ -69,6 +74,7 @@ module Shadcnrb
 
     def panel(body, src:, reload:, loading:, **opts)
       style = self.class.style
+      opts[:popover] = "manual"
       opts[:data] =
         (opts[:data] || {}).merge(slot: "dialog-content", "shadcnrb--dialog--component-target": "content")
       opts[:class] = Shadcnrb::TailwindMerge.call(style.content, opts[:class])
