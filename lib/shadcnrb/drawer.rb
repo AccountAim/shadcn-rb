@@ -5,6 +5,10 @@
 # vaul is a heavyweight React-only lib. Stimulus `shadcnrb--drawer--component` controller
 # replaces Radix Dialog. upstream: sheet.tsx.
 #
+# shadcn divergence: no portal. Backdrop and panel are `popover="manual"`
+# elements the controller shows in the top layer, so no ancestor transform,
+# filter or overflow can box them in. See drawer/component_controller.js.
+#
 # shadcn divergence: child parts (`header`, `title`, `description`, `footer`)
 # are orphan-protected — they only render when called through a `:drawer`-kind
 # `Shadcnrb::Scope` (yielded by `sui.drawer do |drawer| ... end`).
@@ -52,6 +56,7 @@ module Shadcnrb
 
     def backdrop
       tag.div("",
+        popover: "manual",
         data: { slot: "drawer-overlay", "shadcnrb--drawer--component-target": "backdrop",
                 action: "click->shadcnrb--drawer--component#close" },
         class: self.class.style.backdrop
@@ -60,6 +65,7 @@ module Shadcnrb
 
     def panel(body, side:, src:, reload:, loading:, **opts)
       style = self.class.style
+      opts[:popover] = "manual"
       opts[:data] = (opts[:data] || {}).merge(slot: "drawer-content",
         "shadcnrb--drawer--component-target": "content")
       opts[:class] = Shadcnrb::TailwindMerge.call(
