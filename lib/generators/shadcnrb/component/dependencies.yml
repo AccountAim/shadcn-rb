@@ -135,3 +135,6 @@ tooltip:
 hover_card:
   components:
     - anchored
+
+data_grid:
+  components: [tooltip]
