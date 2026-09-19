@@ -12,7 +12,8 @@
 # container in fixed mode — is `data-slot="table-header"` and draws the
 # header rule; the body part is `table-body` likewise. `size:` (`:default`,
 # `:lg`) sets row height and padding through descendant selectors on the
-# table, so the parts stay size-agnostic.
+# table, so the parts stay size-agnostic. `class:` lands on the container,
+# the box that borders, bounds and scrolls.
 
 module Shadcnrb
   class Table < Component
@@ -22,12 +23,15 @@ module Shadcnrb
         style.sizes, size, kind: :size, component: "table"
       )
 
-      table_class = Shadcnrb::TailwindMerge.call(style.base, size_class, opts.delete(:class))
+      table_class = Shadcnrb::TailwindMerge.call(style.base, size_class)
+      # `class:` lands on the wrapper: the box that borders, bounds and scrolls.
+      @wrapper_class = opts.delete(:class)
+      @caption = nil
+      @table_opts = opts
       opts[:data] = (opts[:data] || {}).merge(slot: "table", size: size.to_s)
       scope = Scope.new(@builder, kind: :table, component: self)
-      return fixed_header_table(table_class, opts, scope, &block) if fixed_header
-
-      plain_table(table_class, opts, scope, &block)
+      html = fixed_header ? fixed_header_table(table_class, opts, scope, &block) : plain_table(table_class, opts, scope, &block)
+      @caption ? safe_join([ html, @caption ]) : html
     end
 
     def proxy
@@ -66,9 +70,15 @@ module Shadcnrb
       content_tag(:td, **opts) { block ? capture(&block) : name.to_s }
     end
 
+    # Rendered after the container so a bordered wrapper doesn't enclose it;
+    # `aria-describedby` on the table keeps it announced. The table's options
+    # are still open at this point: `content_tag` captures the block first.
     def caption(name = nil, scope: nil, **opts, &block)
       opts[:class] = Shadcnrb::TailwindMerge.call(self.class.style.caption, opts[:class])
-      content_tag(:caption, **opts) { block ? capture(&block) : name.to_s }
+      opts[:id] ||= "table-caption-#{SecureRandom.hex(4)}"
+      @table_opts[:aria] = (@table_opts[:aria] || {}).merge(describedby: opts[:id])
+      @caption = content_tag(:p, **opts, data: { slot: "table-caption" }) { block ? capture(&block) : name.to_s }
+      "".html_safe
     end
 
     private :header, :body, :footer, :row, :head, :cell, :caption
@@ -76,9 +86,10 @@ module Shadcnrb
     private
 
     def plain_table(table_class, opts, scope, &block)
-      container_opts = { class: self.class.style.container, data: { slot: "table-container" } }
+      container_class = Shadcnrb::TailwindMerge.call(self.class.style.container, @wrapper_class)
+      container_opts = { class: container_class, data: { slot: "table-container" } }
       content_tag(:div, **container_opts) do
-        content_tag(:table, class: table_class, **opts) do
+        content_tag(:table, opts.merge!(class: table_class)) do
           block ? capture(scope, &block) : "".html_safe
         end
       end
@@ -98,7 +109,8 @@ module Shadcnrb
       body_data = { slot: "table-body", "shadcnrb--table--component-target": "body",
                     action: "scroll->shadcnrb--table--component#pan" }
       container_data = { slot: "table-container", controller: "shadcnrb--table--component" }
-      content_tag(:div, class: style.fixed_container, data: container_data) do
+      container_class = Shadcnrb::TailwindMerge.call(style.fixed_container, @wrapper_class)
+      content_tag(:div, class: container_class, data: container_data) do
         safe_join([
           content_tag(:div, class: style.fixed_header, data: header_data) do
             content_tag(:table, header, class: "#{table_class} table-fixed", **opts)
