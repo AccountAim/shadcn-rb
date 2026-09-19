@@ -5,5 +5,9 @@ module Shadcnrb
     def drawer(*args, **kwargs, &block)
       (@drawer ||= Shadcnrb::Drawer.new(self)).drawer(*args, **kwargs, &block)
     end
+
+    def drawer_proxy
+      (@drawer ||= Shadcnrb::Drawer.new(self)).proxy
+    end
   end
 end

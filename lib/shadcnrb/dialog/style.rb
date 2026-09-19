@@ -27,6 +27,10 @@ class Shadcnrb::Dialog::Style
     CLASSES
   end
 
+  # Matches the `duration-200` above: the controller hides the popovers
+  # this many ms after closing.
+  def close_delay = 200
+
   def close_btn_pos = "absolute top-4 right-4 opacity-70 hover:opacity-100 transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none"
 
   def header      = "flex flex-col gap-2 text-center sm:text-left"
