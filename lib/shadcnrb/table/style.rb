@@ -20,8 +20,8 @@ class Shadcnrb::Table::Style
   def body    = "[&_tr:last-child]:border-0"
   def footer  = "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0"
   def row     = "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  def head    = "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0"
-  def cell    = "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0"
+  def head    = "h-10 px-2.5 text-left align-middle font-medium whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0"
+  def cell    = "px-2.5 py-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0"
   def caption = "mt-4 text-sm text-muted-foreground"
 
   # Row height and padding per size; `head` and `cell` carry the default.
