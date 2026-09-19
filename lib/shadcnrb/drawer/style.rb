@@ -25,6 +25,8 @@ class Shadcnrb::Drawer::Style
     }
   end
 
+  def close_delay = 300
+
   def close_btn_pos = "absolute top-4 right-4 opacity-70 hover:opacity-100 transition-opacity"
 
   def header      = "flex flex-col gap-0.5 p-4 md:gap-1.5 md:text-left"

@@ -34,17 +34,17 @@ badge:
 button:
   components: []
 
-# Modal overlays: `anchored` supplies the trigger-slot mechanics (not
-# positioning — the panels are centered/edge-anchored by CSS).
+# Modal overlay: `anchored` supplies the trigger-slot mechanics (not
+# positioning — the panel is centered by CSS).
 dialog:
   components:
     - anchored
     - button
 
+# `Drawer < Dialog`; its controller extends the dialog one.
 drawer:
   components:
-    - anchored
-    - button
+    - dialog
 
 sidebar:
   components:
